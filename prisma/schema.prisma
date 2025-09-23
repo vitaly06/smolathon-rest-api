@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model Role{
+  id Int @unique @default(autoincrement())
+  name String @unique
+  User User[]
+}
+
+model User{
+  id Int @unique @default(autoincrement())
+  login String @unique
+  password String   
+  roleId Int
+  role Role @relation(fields: [roleId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt()
+}
+
+model Statistics {
+  id               Int      @id @default(autoincrement())
+  subject          String
+  pointFpsr        String
+  indicatorName    String
+  indicatorValue   Float?   // для числовых значений
+  indicatorValueString String? // для строковых значений вроде "7,530420906"
+  period           String
+  createdAt        DateTime @default(now())
+} 
+
+
+model News{
+  id Int @id @default(autoincrement())
+  title String
+  body String
+  imageUrl String?
+  createdAt DateTime @default(now())
+}
+
+
