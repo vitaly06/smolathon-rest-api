@@ -1,0 +1,37 @@
+services:
+  app:
+    build:
+      context: .
+      target: development
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/Smolathon?schema=public
+      # - JWT_TOKEN=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiIxOGFmNDFhMGI0NjRkMzNkN2E2ZDNjNWRhOThjMTBkMSJ9.CyzpK0My-k7EquK3B0cLAb1vN0WpaxSd0bP0WV56kPZ7xIswlweQZLym7OuMeMWRbU3HC_H-yKtIn3gNlNQ97CD-A2oQ631nkQrVZEIldxPkxYEUKrAe2NMEYtGjspi_ISLkhta_cr9Es7tKvxJU2Ev1jrz5ikGU4oBSC6dVsU_dyDkvC1VrCrZzH73T1LRI9LNdYRcVU5fdjcCsr4T-2yF_FwvFQy0XONdIxUi9ulWWhXiIWNDA3iHSG3tu_-ll_1-N4LEMRm4INA5ofaG4MCi3o3SA-lZEqFPsbXZ7777rwcGc1AVCwvH4BOaYa2EVWTH2YdPQgBt9vBPdXClNncSfei1rP47I_tzMH_CaEWTM-6V16wJG74OxGKOcHcf_4Bf0WSwnc3Nbg5MUO6RD0QEkXcThF5igiqlLUiDcweb8Vzx5bH6Bysr_W1GNLX5z-80yrHcDPhRNYkBDuitLXcZhq5pFEgZHiHKgWhwCAHRgqRsZt-VonP2hzwpDRBLf
+      # - CLIENT_ID=18af41a0b464d33d7a6d3c5da98c10d1
+    depends_on:
+      - db
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    command: sh -c "sleep 5 && npx prisma db push --accept-data-loss && nest start --watch"
+
+  db:
+    image: postgres:13-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=Smolathon
+    ports:
+      - '5433:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./dumps/dump.sql:/docker-entrypoint-initdb.d/dump.sql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+volumes:
+  postgres_data:

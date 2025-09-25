@@ -7,22 +7,31 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
-model Role{
-  id Int @unique @default(autoincrement())
+model Role {
+  id   Int    @id @default(autoincrement())
   name String @unique
-  User User[]
+  users User[]
 }
 
-model User{
-  id Int @unique @default(autoincrement())
-  login String @unique
-  password String   
-  roleId Int
-  role Role @relation(fields: [roleId], references: [id])
-
+model User {
+  id        Int      @id @default(autoincrement())
+  login     String   @unique
+  password  String
+  roleId    Int
+  role      Role     @relation(fields: [roleId], references: [id])
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt()
+  updatedAt DateTime @updatedAt
+  news      News[] // Связь с создаваемыми новостями
+  documents Document[] // Связь с создаваемыми документами
+  vacancies Vacancy[] // Связь с создаваемыми вакансиями
+  projects  Project[] // Связь с создаваемыми проектами
+  services  Service[] // Связь с создаваемыми услугами
+  teamMembers TeamMember[] // Связь с создаваемыми членами команды
+  fineStatistics FineStatistic[] // Связь с управляемой статистикой штрафов
+  evacuationStatistics EvacuationStatistic[] // Связь с управляемой статистикой эвакуаций
+  accidentStatistics AccidentStatistic[] // Связь с управляемой статистикой ДТП
+  trafficLights TrafficLight[] // Связь с управляемыми светофорами
+  evacuatorRoutes EvacuatorRoute[] // Связь с управляемыми маршрутами эвакуаторов
 }
 
 model Statistics {
@@ -34,15 +43,135 @@ model Statistics {
   indicatorValueString String? // для строковых значений вроде "7,530420906"
   period           String
   createdAt        DateTime @default(now())
-} 
-
-
-model News{
-  id Int @id @default(autoincrement())
-  title String
-  body String
-  imageUrl String?
-  createdAt DateTime @default(now())
 }
 
+model News {
+  id        Int      @id @default(autoincrement())
+  title     String
+  body      String
+  imageUrl  String?
+  createdAt DateTime @default(now())
+  userId    Int? 
+  user      User?    @relation(fields: [userId], references: [id])
+}
 
+model Document {
+  id          Int      @id @default(autoincrement())
+  title       String
+  fileUrl     String
+  description String
+  createdAt   DateTime @default(now())
+  userId      Int? 
+  user        User?    @relation(fields: [userId], references: [id])
+}
+
+model Vacancy {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  salary      String?
+  createdAt   DateTime @default(now())
+  userId      Int? 
+  user        User?    @relation(fields: [userId], references: [id])
+}
+
+model Project {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  status      String 
+  startDate   DateTime
+  endDate     DateTime?
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  userId      Int? 
+  user        User?    @relation(fields: [userId], references: [id])
+}
+
+model Service {
+  id              Int      @id @default(autoincrement())
+  name            String
+  description     String
+  cost            Float
+  orderFormDetails String 
+  createdAt       DateTime @default(now())
+  userId          Int? 
+  user            User?    @relation(fields: [userId], references: [id])
+}
+
+model TeamMember {
+  id        Int      @id @default(autoincrement())
+  name      String
+  position  String
+  bio       String
+  photoUrl  String
+  createdAt DateTime @default(now())
+  userId    Int? // Опционально
+  user      User?    @relation(fields: [userId], references: [id])
+}
+
+model FineStatistic {
+  id              Int      @id @default(autoincrement())
+  date            DateTime
+  violationsCount Int
+  decreesCount    Int
+  imposedFines    Float
+  collectedFines  Float
+  period          String // Например, monthly, yearly
+  isPublic        Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  userId          Int? // Опционально, для управляющего
+  user            User?    @relation(fields: [userId], references: [id])
+}
+
+model EvacuationStatistic {
+  id                 Int      @id @default(autoincrement())
+  date               DateTime
+  evacuatorsCount    Int
+  tripsCount         Int
+  evacuationsCount   Int
+  parkingLotRevenues Float
+  period             String
+  isPublic           Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  userId             Int? // Опционально
+  user               User?    @relation(fields: [userId], references: [id])
+}
+
+model AccidentStatistic {
+  id              Int      @id @default(autoincrement())
+  date            DateTime
+  incidentsCount  Int
+  injuredCount    Int
+  fatalitiesCount Int
+  location        String?
+  period          String
+  isPublic        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  userId          Int? // Опционально
+  user            User?    @relation(fields: [userId], references: [id])
+}
+
+model TrafficLight {
+  id               Int      @id @default(autoincrement())
+  address          String
+  type             String // Например, pedestrian, vehicle
+  installationDate DateTime
+  status           String // Например, active, maintenance
+  latitude         Float // Для отображения на карте
+  longitude        Float // Для отображения на карте
+  isPublic         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  userId           Int? // Опционально
+  user             User?    @relation(fields: [userId], references: [id])
+}
+
+model EvacuatorRoute {
+  id          Int      @id @default(autoincrement())
+  routeName   String
+  description String
+  waypoints   String // JSON массив точек маршрута
+  createdAt   DateTime @default(now())
+  userId      Int? // Опционально
+  user        User?    @relation(fields: [userId], references: [id])
+}
