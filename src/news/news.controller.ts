@@ -131,8 +131,7 @@ export class NewsController {
           description: 'Новое изображение новости',
         },
       },
-      // Все поля необязательные для PATCH
-      required: [], // пустой массив = все поля необязательные
+      required: [],
     },
   })
   @ApiResponse({
@@ -159,7 +158,6 @@ export class NewsController {
         throw new BadRequestException('Неверный ID новости');
       }
 
-      // Проверяем существование новости
       const existingNews = await this.newsService.getNewsById(newsId);
       if (!existingNews) {
         throw new NotFoundException('Новость не найдена');
@@ -219,6 +217,53 @@ export class NewsController {
   @ApiResponse({
     status: 200,
     description: 'Список новостей',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', example: 1 },
+          title: { type: 'string', example: 'Заголовок новости' },
+          body: { type: 'string', example: 'Текст новости' },
+          imageUrl: {
+            type: 'string',
+            example: 'image.jpg',
+            nullable: true,
+          },
+          createdAt: {
+            type: 'string',
+            format: 'date-time',
+            example: '2024-01-01T00:00:00.000Z',
+          },
+          // user: {
+          //   type: 'object',
+          //   properties: {
+          //     id: { type: 'number', example: 1 },
+          //     login: { type: 'string', example: 'admin' },
+          //     role: {
+          //       type: 'object',
+          //       properties: {
+          //         id: { type: 'number', example: 1 },
+          //         name: { type: 'string', example: 'ADMIN' },
+          //       },
+          //     },
+          //   },
+          //   nullable: true,
+          // },
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Внутренняя ошибка сервера',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 500 },
+        message: { type: 'string', example: 'Internal server error' },
+      },
+    },
   })
   async findAll() {
     const news = await this.newsService.getAllNews();
@@ -230,6 +275,63 @@ export class NewsController {
   @ApiResponse({
     status: 200,
     description: 'Данные новости',
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'number', example: 1 },
+        title: { type: 'string', example: 'Заголовок новости' },
+        body: { type: 'string', example: 'Текст новости' },
+        imageUrl: {
+          type: 'string',
+          example: 'image.jpg',
+          nullable: true,
+        },
+        createdAt: {
+          type: 'string',
+          format: 'date-time',
+          example: '2024-01-01T00:00:00.000Z',
+        },
+        // user: {
+        //   type: 'object',
+        //   properties: {
+        //     id: { type: 'number', example: 1 },
+        //     login: { type: 'string', example: 'admin' },
+        //     role: {
+        //       type: 'object',
+        //       properties: {
+        //         id: { type: 'number', example: 1 },
+        //         name: { type: 'string', example: 'ADMIN' },
+        //       },
+        //     },
+        //   },
+        //   nullable: true,
+        // },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Неверный ID новости',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 400 },
+        message: { type: 'string', example: 'Неверный ID новости' },
+        error: { type: 'string', example: 'Bad Request' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Новость не найдена',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 404 },
+        message: { type: 'string', example: 'Новость не найдена' },
+        error: { type: 'string', example: 'Not Found' },
+      },
+    },
   })
   async getNewsById(@Param('id') id: string) {
     const newsId = parseInt(id);
@@ -250,10 +352,39 @@ export class NewsController {
   @ApiResponse({
     status: 200,
     description: 'Новость успешно удалена',
+    schema: {
+      type: 'object',
+      properties: {
+        message: {
+          type: 'string',
+          example: 'Новость успешно удалена',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Неверный ID новости',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 400 },
+        message: { type: 'string', example: 'Неверный ID новости' },
+        error: { type: 'string', example: 'Bad Request' },
+      },
+    },
   })
   @ApiResponse({
     status: 404,
     description: 'Новость не найдена',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 404 },
+        message: { type: 'string', example: 'Новость не найдена' },
+        error: { type: 'string', example: 'Not Found' },
+      },
+    },
   })
   async deleteNews(@Param('id') id: string) {
     const newsId = parseInt(id);
