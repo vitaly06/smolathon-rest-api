@@ -2,6 +2,7 @@
 -- PostgreSQL database dump
 --
 
+\restrict LeRReGudfqECZxFH83bRQ9byuFLFOkM0CdDPK2HJ5Lxi1IN2BMGHHyKjv7hczVz
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 17.6
@@ -9,6 +10,7 @@
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
@@ -522,7 +524,8 @@ CREATE TABLE public."User" (
     password text NOT NULL,
     "roleId" integer NOT NULL,
     "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    "updatedAt" timestamp(3) without time zone NOT NULL
+    "updatedAt" timestamp(3) without time zone NOT NULL,
+    "refreshToken" text
 );
 
 
@@ -558,9 +561,10 @@ CREATE TABLE public."Vacancy" (
     id integer NOT NULL,
     title text NOT NULL,
     description text NOT NULL,
-    salary text,
-    "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    "userId" integer
+    "userId" integer,
+    address text NOT NULL,
+    experience text,
+    salary integer NOT NULL
 );
 
 
@@ -809,8 +813,8 @@ COPY public."TrafficLight" (id, address, type, "installationDate", status, latit
 -- Data for Name: User; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public."User" (id, login, password, "roleId", "createdAt", "updatedAt") FROM stdin;
-1	admin	$2b$10$a7aUXiPb1S/dEt6Wz5BpWe8DR/3nPy7COwsqKOjoW78oh3W0c/DzO	2	2025-09-25 05:15:37.772	2025-09-25 05:15:37.772
+COPY public."User" (id, login, password, "roleId", "createdAt", "updatedAt", "refreshToken") FROM stdin;
+1	admin	$2b$10$a7aUXiPb1S/dEt6Wz5BpWe8DR/3nPy7COwsqKOjoW78oh3W0c/DzO	2	2025-09-25 05:15:37.772	2025-09-25 05:15:37.772	\N
 \.
 
 
@@ -818,7 +822,7 @@ COPY public."User" (id, login, password, "roleId", "createdAt", "updatedAt") FRO
 -- Data for Name: Vacancy; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public."Vacancy" (id, title, description, salary, "createdAt", "userId") FROM stdin;
+COPY public."Vacancy" (id, title, description, "userId", address, experience, salary) FROM stdin;
 \.
 
 
@@ -1169,4 +1173,5 @@ REVOKE USAGE ON SCHEMA public FROM PUBLIC;
 -- PostgreSQL database dump complete
 --
 
+\unrestrict LeRReGudfqECZxFH83bRQ9byuFLFOkM0CdDPK2HJ5Lxi1IN2BMGHHyKjv7hczVz
 

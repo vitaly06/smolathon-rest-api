@@ -1,7 +1,8 @@
-import { Body, Controller, HttpStatus, Post } from '@nestjs/common';
+import { Body, Controller, HttpStatus, Post, UseGuards } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { addEmployeeDto } from './dto/add-employee.dto';
 import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 
 @Controller('admin')
 export class AdminController {
@@ -54,6 +55,7 @@ export class AdminController {
       },
     },
   })
+  @UseGuards(JwtAuthGuard)
   @Post('add-employee')
   async addEmployee(@Body() dto: addEmployeeDto) {
     return await this.adminService.addEmployee(
