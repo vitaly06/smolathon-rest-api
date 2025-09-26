@@ -35,6 +35,8 @@ model User {
   evacuatorRoutes EvacuatorRoute[] // Связь с управляемыми маршрутами эвакуаторов
 }
 
+// Диаграмма со статистикой
+
 model Statistics {
   id               Int      @id @default(autoincrement())
   subject          String
@@ -45,7 +47,7 @@ model Statistics {
   period           String
   createdAt        DateTime @default(now())
 }
-
+// Новости
 model News {
   id        Int      @id @default(autoincrement())
   title     String
@@ -55,7 +57,7 @@ model News {
   userId    Int? 
   user      User?    @relation(fields: [userId], references: [id])
 }
-
+// Вакансии
 model Vacancy{
   id Int @id @default(autoincrement())
   title String
@@ -67,8 +69,32 @@ model Vacancy{
   user User? @relation(fields: [userId], references: [id])
 
 }
-
+// Отлики на вакансии
 model JobResponse{
+  id Int @id @default(autoincrement())
+  fullName String
+  phoneNumber String
+  email String
+}
+
+// Вызовы эвакуатора
+model TowTruckResponse{
+  id Int @id @default(autoincrement())
+  fullName String
+  phoneNumber String
+  email String
+  carType String
+  address String
+} 
+// Заявка на разработку документов
+model DocumentationDevelopmentResponse{
+  id Int @id @default(autoincrement())
+  fullName String
+  phoneNumber String
+  email String
+}
+// Заявка на аренду автовышки
+model BoomLiftRentalResponse{
   id Int @id @default(autoincrement())
   fullName String
   phoneNumber String

@@ -7,7 +7,7 @@ export class TelegramBotService implements OnApplicationBootstrap {
   private bot: Telegraf | null = null;
   private isReady = false;
   private pendingMessages: Array<{
-    jobData: any;
+    message: string;
     resolve: (value: boolean) => void;
     reject: (reason?: any) => void;
   }> = [];
@@ -56,11 +56,9 @@ export class TelegramBotService implements OnApplicationBootstrap {
     this.logger.log(
       `Обработка ${this.pendingMessages.length} сообщений в очереди...`,
     );
-    this.pendingMessages.forEach(({ jobData, resolve, reject }, index) => {
-      this.logger.log(
-        `Обработка сообщения ${index + 1}: ${JSON.stringify(jobData)}`,
-      );
-      this.sendMessageInternal(jobData)
+    this.pendingMessages.forEach(({ message, resolve, reject }, index) => {
+      this.logger.log(`Обработка сообщения ${index + 1}: ${message}`);
+      this.sendMessageInternal(message)
         .then(resolve)
         .catch((error) => {
           this.logger.error(
@@ -80,25 +78,19 @@ export class TelegramBotService implements OnApplicationBootstrap {
     this.pendingMessages = [];
   }
 
-  async sendJobResponseNotification(jobData: {
-    fullName: string;
-    phoneNumber: string;
-    email: string;
-    id?: number;
-    vacancy: string;
-  }): Promise<boolean> {
+  async sendJobResponseNotification(message: string): Promise<boolean> {
     // Если бот не готов, добавляем в очередь с таймаутом
     if (!this.isReady || !this.bot) {
       this.logger.warn('⏳ Telegram бот не готов, добавление в очередь...');
       return new Promise((resolve, reject) => {
-        this.pendingMessages.push({ jobData, resolve, reject });
+        this.pendingMessages.push({ message, resolve, reject });
         setTimeout(() => {
           if (!this.isReady) {
             const timeoutError = new Error(
               'Telegram бот не инициализирован после таймаута',
             );
             this.logger.error(
-              `Таймаут: ${timeoutError.message}, сообщение: ${JSON.stringify(jobData)}`,
+              `Таймаут: ${timeoutError.message}, сообщение: ${message}`,
             );
             reject(timeoutError);
           }
@@ -107,27 +99,11 @@ export class TelegramBotService implements OnApplicationBootstrap {
     }
 
     // Если готов, отправляем сразу
-    return this.sendMessageInternal(jobData);
+    return this.sendMessageInternal(message);
   }
 
-  private async sendMessageInternal(jobData: {
-    fullName: string;
-    phoneNumber: string;
-    email: string;
-    id?: number;
-    vacancy: string;
-  }): Promise<boolean> {
+  private async sendMessageInternal(message: string): Promise<boolean> {
     try {
-      const message = `
-*Новая заявка на вакансию*
-
-*Вакансия:* ${jobData.vacancy}
-*ФИО:* ${jobData.fullName}
-*Телефон:* ${jobData.phoneNumber}
-*Email:* ${jobData.email}
-
-      `;
-
       await this.bot!.telegram.sendMessage(
         process.env.TELEGRAM_CHAT_ID!,
         message,
@@ -138,7 +114,7 @@ export class TelegramBotService implements OnApplicationBootstrap {
       return true;
     } catch (error) {
       this.logger.error(`❌ Ошибка отправки в Telegram: ${error.message}`);
-      throw error; // Прокидываем ошибку для обработки выше
+      throw error;
     }
   }
 

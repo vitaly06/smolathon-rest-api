@@ -80,6 +80,42 @@ ALTER SEQUENCE public."AccidentStatistic_id_seq" OWNED BY public."AccidentStatis
 
 
 --
+-- Name: BoomLiftRentalResponse; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."BoomLiftRentalResponse" (
+    id integer NOT NULL,
+    "fullName" text NOT NULL,
+    "phoneNumber" text NOT NULL,
+    email text NOT NULL
+);
+
+
+ALTER TABLE public."BoomLiftRentalResponse" OWNER TO postgres;
+
+--
+-- Name: BoomLiftRentalResponse_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public."BoomLiftRentalResponse_id_seq"
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public."BoomLiftRentalResponse_id_seq" OWNER TO postgres;
+
+--
+-- Name: BoomLiftRentalResponse_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public."BoomLiftRentalResponse_id_seq" OWNED BY public."BoomLiftRentalResponse".id;
+
+
+--
 -- Name: Document; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -115,6 +151,42 @@ ALTER SEQUENCE public."Document_id_seq" OWNER TO postgres;
 --
 
 ALTER SEQUENCE public."Document_id_seq" OWNED BY public."Document".id;
+
+
+--
+-- Name: DocumentationDevelopmentResponse; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."DocumentationDevelopmentResponse" (
+    id integer NOT NULL,
+    "fullName" text NOT NULL,
+    "phoneNumber" text NOT NULL,
+    email text NOT NULL
+);
+
+
+ALTER TABLE public."DocumentationDevelopmentResponse" OWNER TO postgres;
+
+--
+-- Name: DocumentationDevelopmentResponse_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public."DocumentationDevelopmentResponse_id_seq"
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public."DocumentationDevelopmentResponse_id_seq" OWNER TO postgres;
+
+--
+-- Name: DocumentationDevelopmentResponse_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public."DocumentationDevelopmentResponse_id_seq" OWNED BY public."DocumentationDevelopmentResponse".id;
 
 
 --
@@ -507,6 +579,44 @@ ALTER SEQUENCE public."TeamMember_id_seq" OWNED BY public."TeamMember".id;
 
 
 --
+-- Name: TowTruckResponse; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."TowTruckResponse" (
+    id integer NOT NULL,
+    "fullName" text NOT NULL,
+    "phoneNumber" text NOT NULL,
+    email text NOT NULL,
+    "carType" text NOT NULL,
+    address text NOT NULL
+);
+
+
+ALTER TABLE public."TowTruckResponse" OWNER TO postgres;
+
+--
+-- Name: TowTruckResponse_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public."TowTruckResponse_id_seq"
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public."TowTruckResponse_id_seq" OWNER TO postgres;
+
+--
+-- Name: TowTruckResponse_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public."TowTruckResponse_id_seq" OWNED BY public."TowTruckResponse".id;
+
+
+--
 -- Name: TrafficLight; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -652,10 +762,24 @@ ALTER TABLE ONLY public."AccidentStatistic" ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- Name: BoomLiftRentalResponse id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."BoomLiftRentalResponse" ALTER COLUMN id SET DEFAULT nextval('public."BoomLiftRentalResponse_id_seq"'::regclass);
+
+
+--
 -- Name: Document id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public."Document" ALTER COLUMN id SET DEFAULT nextval('public."Document_id_seq"'::regclass);
+
+
+--
+-- Name: DocumentationDevelopmentResponse id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."DocumentationDevelopmentResponse" ALTER COLUMN id SET DEFAULT nextval('public."DocumentationDevelopmentResponse_id_seq"'::regclass);
 
 
 --
@@ -729,6 +853,13 @@ ALTER TABLE ONLY public."TeamMember" ALTER COLUMN id SET DEFAULT nextval('public
 
 
 --
+-- Name: TowTruckResponse id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."TowTruckResponse" ALTER COLUMN id SET DEFAULT nextval('public."TowTruckResponse_id_seq"'::regclass);
+
+
+--
 -- Name: TrafficLight id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -758,10 +889,26 @@ COPY public."AccidentStatistic" (id, date, "incidentsCount", "injuredCount", "fa
 
 
 --
+-- Data for Name: BoomLiftRentalResponse; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public."BoomLiftRentalResponse" (id, "fullName", "phoneNumber", email) FROM stdin;
+\.
+
+
+--
 -- Data for Name: Document; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public."Document" (id, title, "fileUrl", description, "createdAt", "userId") FROM stdin;
+\.
+
+
+--
+-- Data for Name: DocumentationDevelopmentResponse; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public."DocumentationDevelopmentResponse" (id, "fullName", "phoneNumber", email) FROM stdin;
 \.
 
 
@@ -807,9 +954,9 @@ COPY public."JobResponse" (id, "fullName", "phoneNumber", email) FROM stdin;
 --
 
 COPY public."News" (id, title, body, "imageUrl", "createdAt", "userId") FROM stdin;
-1	Ограничение массы	В связи с введением Администрацией муниципального образования «Смоленский муниципальный округ» Смоленской области запрета на движение грузовых транспортных средств с полной массой свыше 3,5 т по мостовому сооружению через р. Каспля, расположенному между населенными пунктами с. Каспля-1 и с. Каспля-2, сообщаем следующее. СОГБУ «ЦОДД» совместно с Управлением Госавтоинспекции УМВД России по Смоленской области, с целью обеспечения безопасного и беспрепятственного проезда транспорта по данному мостовому сооружению, принято решение о размещении стационарного комплекса автоматической фиксации нарушений правил дорожного движения, включая превышение установленной скорости движения, а также требований, предписанных дорожными знаками, запрещающими движение грузовых транспортных средств. Обращаем внимание, что согласно ч.6 ст.12.16 КоАП РФ штраф за несоблюдение требований указанных дорожных знаков составляет 5000 руб.	1758784028135-903319220.jpg	2025-09-25 07:07:08.171	\N
-2	ФКУ «Упрдор Москва – Бобруйск»	В связи с введением ФКУ «Упрдор Москва – Бобруйск» запрета на движение грузовых транспортных средств с полной массой свыше 3,5 т в связи с неудовлетворительным состоянием моста через р. Днепр сообщаем следующее. СОГБУ «ЦОДД» совместно с Госавтоинспекцией, с целью обеспечения безопасного и беспрепятственного проезда транспорта по дороге общего пользования федерального значения Р-120 «Орёл – Брянск – Смоленск – граница с Республикой Беларусь» юго-западный обход г. Смоленска, принято решение о фиксации с 16.05.2025 нарушения требований, предписанных дорожными знаками, запрещающими движение грузовых транспортных средств комплексом, установленным на км 19+670 вышеуказанной автомобильной дороги. Согласно ч.6 ст.12.16 Кодекс Российской Федерации об административных правонарушениях штраф, за несоблюдение требований указанных дорожных знаков составляет 5000 руб.	1758784074445-746137146.jpg	2025-09-25 07:07:54.504	\N
-3	В Смоленске отключат светофоры	На время проведения ремонтных работ на электросетях, будет отключен светофорный объект: 05 и 06 мая с 9:00 до 17:00 Колхозная пл.	1758784130385-983603077.jpg	2025-09-25 07:08:50.394	\N
+1	Ограничение массы	В связи с введением Администрацией муниципального образования «Смоленский муниципальный округ» Смоленской области запрета на движение грузовых транспортных средств с полной массой свыше 3,5 т по мостовому сооружению через р. Каспля, расположенному между населенными пунктами с. Каспля-1 и с. Каспля-2, сообщаем следующее. СОГБУ «ЦОДД» совместно с Управлением Госавтоинспекции УМВД России по Смоленской области, с целью обеспечения безопасного и беспрепятственного проезда транспорта по данному мостовому сооружению, принято решение о размещении стационарного комплекса автоматической фиксации нарушений правил дорожного движения, включая превышение установленной скорости движения, а также требований, предписанных дорожными знаками, запрещающими движение грузовых транспортных средств. Обращаем внимание, что согласно ч.6 ст.12.16 КоАП РФ штраф за несоблюдение требований указанных дорожных знаков составляет 5000 руб.	uploads/news/1758784028135-903319220.jpg	2025-09-25 07:07:08.171	\N
+2	ФКУ «Упрдор Москва – Бобруйск»	В связи с введением ФКУ «Упрдор Москва – Бобруйск» запрета на движение грузовых транспортных средств с полной массой свыше 3,5 т в связи с неудовлетворительным состоянием моста через р. Днепр сообщаем следующее. СОГБУ «ЦОДД» совместно с Госавтоинспекцией, с целью обеспечения безопасного и беспрепятственного проезда транспорта по дороге общего пользования федерального значения Р-120 «Орёл – Брянск – Смоленск – граница с Республикой Беларусь» юго-западный обход г. Смоленска, принято решение о фиксации с 16.05.2025 нарушения требований, предписанных дорожными знаками, запрещающими движение грузовых транспортных средств комплексом, установленным на км 19+670 вышеуказанной автомобильной дороги. Согласно ч.6 ст.12.16 Кодекс Российской Федерации об административных правонарушениях штраф, за несоблюдение требований указанных дорожных знаков составляет 5000 руб.	uploads/news/1758784074445-746137146.jpg	2025-09-25 07:07:54.504	\N
+3	В Смоленске отключат светофоры	На время проведения ремонтных работ на электросетях, будет отключен светофорный объект: 05 и 06 мая с 9:00 до 17:00 Колхозная пл.	uploads/news/1758784130385-983603077.jpg	2025-09-25 07:08:50.394	\N
 \.
 
 
@@ -864,6 +1011,14 @@ COPY public."TeamMember" (id, name, "position", bio, "photoUrl", "createdAt", "u
 
 
 --
+-- Data for Name: TowTruckResponse; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public."TowTruckResponse" (id, "fullName", "phoneNumber", email, "carType", address) FROM stdin;
+\.
+
+
+--
 -- Data for Name: TrafficLight; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -905,10 +1060,24 @@ SELECT pg_catalog.setval('public."AccidentStatistic_id_seq"', 1, false);
 
 
 --
+-- Name: BoomLiftRentalResponse_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public."BoomLiftRentalResponse_id_seq"', 1, false);
+
+
+--
 -- Name: Document_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
 SELECT pg_catalog.setval('public."Document_id_seq"', 1, false);
+
+
+--
+-- Name: DocumentationDevelopmentResponse_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public."DocumentationDevelopmentResponse_id_seq"', 1, false);
 
 
 --
@@ -982,6 +1151,13 @@ SELECT pg_catalog.setval('public."TeamMember_id_seq"', 1, false);
 
 
 --
+-- Name: TowTruckResponse_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public."TowTruckResponse_id_seq"', 1, false);
+
+
+--
 -- Name: TrafficLight_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -1011,11 +1187,27 @@ ALTER TABLE ONLY public."AccidentStatistic"
 
 
 --
+-- Name: BoomLiftRentalResponse BoomLiftRentalResponse_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."BoomLiftRentalResponse"
+    ADD CONSTRAINT "BoomLiftRentalResponse_pkey" PRIMARY KEY (id);
+
+
+--
 -- Name: Document Document_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public."Document"
     ADD CONSTRAINT "Document_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: DocumentationDevelopmentResponse DocumentationDevelopmentResponse_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."DocumentationDevelopmentResponse"
+    ADD CONSTRAINT "DocumentationDevelopmentResponse_pkey" PRIMARY KEY (id);
 
 
 --
@@ -1096,6 +1288,14 @@ ALTER TABLE ONLY public."Statistics"
 
 ALTER TABLE ONLY public."TeamMember"
     ADD CONSTRAINT "TeamMember_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: TowTruckResponse TowTruckResponse_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."TowTruckResponse"
+    ADD CONSTRAINT "TowTruckResponse_pkey" PRIMARY KEY (id);
 
 
 --
