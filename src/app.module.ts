@@ -7,8 +7,23 @@ import { PhotoModule } from './photo/photo.module';
 import { AdminModule } from './admin/admin.module';
 import { VacancyModule } from './vacancy/vacancy.module';
 import { RoleModule } from './role/role.module';
+import { TelegramBotModule } from './telegram-bot/telegram-bot.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [StatisticModule, PrismaModule, AuthModule, NewsModule, PhotoModule, AdminModule, VacancyModule, RoleModule],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    StatisticModule,
+    PrismaModule,
+    AuthModule,
+    NewsModule,
+    PhotoModule,
+    AdminModule,
+    VacancyModule,
+    RoleModule,
+    TelegramBotModule,
+  ],
 })
 export class AppModule {}

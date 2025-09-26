@@ -3,48 +3,52 @@ import {
   ExecutionContext,
   UnauthorizedException,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
-export class JwtAuthGuard extends AuthGuard('jwt') {
+export class JwtAuthGuard {
   constructor(
-    protected readonly jwtService: JwtService, // было private
-    protected readonly prisma: PrismaService, // было private
-    protected readonly configService: ConfigService, // было private
-  ) {
-    super();
-  }
+    private readonly jwtService: JwtService,
+    private readonly prisma: PrismaService,
+    private readonly configService: ConfigService,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
-    const response = context.switchToHttp().getResponse();
-    const accessToken = this.extractAccessToken(request);
+
+    // Пропускаем webhooks без аутентификации
     if (request.url.startsWith('/webhooks/')) {
-      return true; // Пропускаем без аутентификации
+      return true;
     }
 
     try {
+      const accessToken = this.extractAccessToken(request);
+
       if (accessToken) {
         try {
           // Пытаемся верифицировать access token
           await this.jwtService.verifyAsync(accessToken, {
             secret: this.configService.get('JWT_ACCESS_SECRET'),
           });
-          return super.canActivate(context) as Promise<boolean>;
+
+          // Добавляем пользователя в request
+          const payload = await this.jwtService.decode(accessToken);
+          request.user = payload;
+          return true;
         } catch (accessError) {
           // Если токен просрочен, пытаемся обновить
           if (accessError.name === 'TokenExpiredError') {
-            return this.refreshTokensAndContinue(context, request, response);
+            return this.refreshTokensAndContinue(context, request);
           }
           throw accessError;
         }
       }
+
       // Если access token отсутствует, пытаемся использовать refresh token
-      return this.refreshTokensAndContinue(context, request, response);
+      return this.refreshTokensAndContinue(context, request);
     } catch (error) {
       console.error('Authentication error:', error);
       throw new UnauthorizedException('Требуется авторизация');
@@ -54,7 +58,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   private async refreshTokensAndContinue(
     context: ExecutionContext,
     request: Request,
-    response: any,
   ): Promise<boolean> {
     const refreshToken = this.extractRefreshToken(request);
 
@@ -87,11 +90,12 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
       this.setTokensToResponse(context, newTokens);
 
-      // Обновляем токены в запросе
+      // Добавляем пользователя в request
+      request.user = payload;
       request.cookies['access_token'] = newTokens.accessToken;
       request.headers['authorization'] = `Bearer ${newTokens.accessToken}`;
-      console.log(response);
-      return super.canActivate(context) as Promise<boolean>;
+
+      return true;
     } catch (refreshError) {
       console.error('Refresh token error:', refreshError);
       throw new UnauthorizedException('Сессия истекла, войдите снова');
@@ -137,14 +141,14 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       httpOnly: true,
       secure: this.configService.get('NODE_ENV') === 'production',
       sameSite: 'strict',
-      maxAge: 120 * 60 * 1000, // 2 часа
+      maxAge: 120 * 60 * 1000,
     });
 
     response.cookie('refresh_token', tokens.refreshToken, {
       httpOnly: true,
       secure: this.configService.get('NODE_ENV') === 'production',
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 дней
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
   }
 }

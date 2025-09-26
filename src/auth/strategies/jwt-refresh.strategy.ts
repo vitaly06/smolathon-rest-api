@@ -17,9 +17,9 @@ export class JwtRefreshStrategy extends PassportStrategy(
         },
       ]),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_REFRESH_SECRET,
+      secretOrKey: process.env.JWT_REFRESH_SECRET || '',
       passReqToCallback: true,
-    } as any);
+    });
   }
 
   async validate(req: Request, payload: JwtPayload) {

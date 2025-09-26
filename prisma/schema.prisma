@@ -68,6 +68,13 @@ model Vacancy{
 
 }
 
+model JobResponse{
+  id Int @id @default(autoincrement())
+  fullName String
+  phoneNumber String
+  email String
+}
+
 model Document {
   id          Int      @id @default(autoincrement())
   title       String
