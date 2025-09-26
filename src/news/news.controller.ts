@@ -10,6 +10,8 @@ import {
   NotFoundException,
   Delete,
   Patch,
+  HttpStatus,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -18,10 +20,18 @@ import {
   ApiConsumes,
   ApiBody,
   ApiResponse,
+  ApiParam,
+  ApiBadRequestResponse,
+  ApiNotFoundResponse,
+  ApiInternalServerErrorResponse,
 } from '@nestjs/swagger';
 import { NewsService } from './news.service';
 import { CreateNewsDto } from './dto/create-news.dto';
 import { UpdateNewsDto } from './dto/update-news.dto';
+import { NewsResponseDto } from './dto/news-response.dto';
+import { CreateNewsResponseDto } from './dto/create-news-response.dto';
+import { UpdateNewsResponseDto } from './dto/update-news-response.dto';
+import { DeleteNewsResponseDto } from './dto/delete-news-response.dto';
 
 @ApiTags('News')
 @Controller('news')
@@ -33,39 +43,44 @@ export class NewsController {
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     description: 'Данные для создания новости',
-    schema: {
-      type: 'object',
-      properties: {
-        title: {
-          type: 'string',
-          description: 'Заголовок новости',
-        },
-        body: {
-          type: 'string',
-          description: 'Текст новости',
-        },
-        image: {
-          type: 'string',
-          format: 'binary',
-          description: 'Изображение новости',
+    type: CreateNewsDto,
+    examples: {
+      example1: {
+        summary: 'Пример создания новости',
+        value: {
+          title: 'Новая дорога в Смоленске',
+          body: 'В Смоленске открывается новая автомобильная дорога...',
         },
       },
-      required: ['title', 'body'],
     },
   })
   @ApiResponse({
-    status: 201,
+    status: HttpStatus.CREATED,
     description: 'Новость успешно создана',
+    type: CreateNewsResponseDto,
   })
-  @ApiResponse({
-    status: 400,
+  @ApiBadRequestResponse({
     description: 'Ошибка валидации данных',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: [
+          'Заголовок обязателен для заполнения',
+          'Недопустимый формат изображения',
+          'Размер изображения не должен превышать 5MB',
+        ],
+        error: 'Bad Request',
+      },
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Внутренняя ошибка сервера',
   })
   @UseInterceptors(FileInterceptor('image'))
   async createNews(
     @Body() createNewsDto: CreateNewsDto,
     @UploadedFile() image?: Express.Multer.File,
-  ) {
+  ): Promise<CreateNewsResponseDto> {
     try {
       if (image) {
         const allowedMimeTypes = [
@@ -112,52 +127,44 @@ export class NewsController {
   @Patch('update/:id')
   @ApiOperation({ summary: 'Обновление новости' })
   @ApiConsumes('multipart/form-data')
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    description: 'ID новости',
+    example: 1,
+  })
   @ApiBody({
-    description: 'Данные для обновления новости (все поля необязательные)',
-    schema: {
-      type: 'object',
-      properties: {
-        title: {
-          type: 'string',
-          description: 'Заголовок новости',
-        },
-        body: {
-          type: 'string',
-          description: 'Текст новости',
-        },
-        image: {
-          type: 'string',
-          format: 'binary',
-          description: 'Новое изображение новости',
+    description: 'Данные для обновления новости',
+    type: UpdateNewsDto,
+    examples: {
+      example1: {
+        summary: 'Пример обновления новости',
+        value: {
+          title: 'Обновленный заголовок',
+          body: 'Обновленный текст новости...',
         },
       },
     },
   })
   @ApiResponse({
-    status: 200,
+    status: HttpStatus.OK,
     description: 'Новость успешно обновлена',
+    type: UpdateNewsResponseDto,
   })
-  @ApiResponse({
-    status: 404,
-    description: 'Новость не найдена',
-  })
-  @ApiResponse({
-    status: 400,
+  @ApiBadRequestResponse({
     description: 'Ошибка валидации данных',
+  })
+  @ApiNotFoundResponse({
+    description: 'Новость не найдена',
   })
   @UseInterceptors(FileInterceptor('image'))
   async updateNews(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateNewsDto: UpdateNewsDto,
     @UploadedFile() image?: Express.Multer.File,
-  ) {
+  ): Promise<UpdateNewsResponseDto> {
     try {
-      const newsId = parseInt(id);
-      if (isNaN(newsId)) {
-        throw new BadRequestException('Неверный ID новости');
-      }
-
-      const existingNews = await this.newsService.getNewsById(newsId);
+      const existingNews = await this.newsService.getNewsById(id);
       if (!existingNews) {
         throw new NotFoundException('Новость не найдена');
       }
@@ -189,7 +196,7 @@ export class NewsController {
       }
 
       const updatedNews = await this.newsService.updateNews(
-        newsId,
+        id,
         updateNewsDto,
         imageUrl,
       );
@@ -214,131 +221,40 @@ export class NewsController {
   @Get('find-all')
   @ApiOperation({ summary: 'Получение всех новостей' })
   @ApiResponse({
-    status: 200,
+    status: HttpStatus.OK,
     description: 'Список новостей',
-    schema: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          id: { type: 'number', example: 1 },
-          title: { type: 'string', example: 'Заголовок новости' },
-          body: { type: 'string', example: 'Текст новости' },
-          imageUrl: {
-            type: 'string',
-            example: 'image.jpg',
-            nullable: true,
-          },
-          createdAt: {
-            type: 'string',
-            format: 'date-time',
-            example: '2024-01-01T00:00:00.000Z',
-          },
-          // user: {
-          //   type: 'object',
-          //   properties: {
-          //     id: { type: 'number', example: 1 },
-          //     login: { type: 'string', example: 'admin' },
-          //     role: {
-          //       type: 'object',
-          //       properties: {
-          //         id: { type: 'number', example: 1 },
-          //         name: { type: 'string', example: 'ADMIN' },
-          //       },
-          //     },
-          //   },
-          //   nullable: true,
-          // },
-        },
-      },
-    },
+    type: [NewsResponseDto],
   })
-  @ApiResponse({
-    status: 500,
+  @ApiInternalServerErrorResponse({
     description: 'Внутренняя ошибка сервера',
-    schema: {
-      type: 'object',
-      properties: {
-        statusCode: { type: 'number', example: 500 },
-        message: { type: 'string', example: 'Internal server error' },
-      },
-    },
   })
-  async findAll() {
-    const news = await this.newsService.getAllNews();
-    return news;
+  async findAll(): Promise<NewsResponseDto[]> {
+    return await this.newsService.getAllNews();
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Получение новости по ID' })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    description: 'ID новости',
+    example: 1,
+  })
   @ApiResponse({
-    status: 200,
+    status: HttpStatus.OK,
     description: 'Данные новости',
-    schema: {
-      type: 'object',
-      properties: {
-        id: { type: 'number', example: 1 },
-        title: { type: 'string', example: 'Заголовок новости' },
-        body: { type: 'string', example: 'Текст новости' },
-        imageUrl: {
-          type: 'string',
-          example: 'image.jpg',
-          nullable: true,
-        },
-        createdAt: {
-          type: 'string',
-          format: 'date-time',
-          example: '2024-01-01T00:00:00.000Z',
-        },
-        // user: {
-        //   type: 'object',
-        //   properties: {
-        //     id: { type: 'number', example: 1 },
-        //     login: { type: 'string', example: 'admin' },
-        //     role: {
-        //       type: 'object',
-        //       properties: {
-        //         id: { type: 'number', example: 1 },
-        //         name: { type: 'string', example: 'ADMIN' },
-        //       },
-        //     },
-        //   },
-        //   nullable: true,
-        // },
-      },
-    },
+    type: NewsResponseDto,
   })
-  @ApiResponse({
-    status: 400,
+  @ApiBadRequestResponse({
     description: 'Неверный ID новости',
-    schema: {
-      type: 'object',
-      properties: {
-        statusCode: { type: 'number', example: 400 },
-        message: { type: 'string', example: 'Неверный ID новости' },
-        error: { type: 'string', example: 'Bad Request' },
-      },
-    },
   })
-  @ApiResponse({
-    status: 404,
+  @ApiNotFoundResponse({
     description: 'Новость не найдена',
-    schema: {
-      type: 'object',
-      properties: {
-        statusCode: { type: 'number', example: 404 },
-        message: { type: 'string', example: 'Новость не найдена' },
-        error: { type: 'string', example: 'Not Found' },
-      },
-    },
   })
-  async getNewsById(@Param('id') id: string) {
-    const newsId = parseInt(id);
-    if (isNaN(newsId)) {
-      throw new BadRequestException('Неверный ID новости');
-    }
-
-    const news = await this.newsService.getNewsById(newsId);
+  async getNewsById(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<NewsResponseDto> {
+    const news = await this.newsService.getNewsById(id);
     if (!news) {
       throw new NotFoundException('Новость не найдена');
     }
@@ -348,55 +264,32 @@ export class NewsController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Удаление новости' })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    description: 'ID новости',
+    example: 1,
+  })
   @ApiResponse({
-    status: 200,
+    status: HttpStatus.OK,
     description: 'Новость успешно удалена',
-    schema: {
-      type: 'object',
-      properties: {
-        message: {
-          type: 'string',
-          example: 'Новость успешно удалена',
-        },
-      },
-    },
+    type: DeleteNewsResponseDto,
   })
-  @ApiResponse({
-    status: 400,
+  @ApiBadRequestResponse({
     description: 'Неверный ID новости',
-    schema: {
-      type: 'object',
-      properties: {
-        statusCode: { type: 'number', example: 400 },
-        message: { type: 'string', example: 'Неверный ID новости' },
-        error: { type: 'string', example: 'Bad Request' },
-      },
-    },
   })
-  @ApiResponse({
-    status: 404,
+  @ApiNotFoundResponse({
     description: 'Новость не найдена',
-    schema: {
-      type: 'object',
-      properties: {
-        statusCode: { type: 'number', example: 404 },
-        message: { type: 'string', example: 'Новость не найдена' },
-        error: { type: 'string', example: 'Not Found' },
-      },
-    },
   })
-  async deleteNews(@Param('id') id: string) {
-    const newsId = parseInt(id);
-    if (isNaN(newsId)) {
-      throw new BadRequestException('Неверный ID новости');
-    }
-
-    const existingNews = await this.newsService.getNewsById(newsId);
+  async deleteNews(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<DeleteNewsResponseDto> {
+    const existingNews = await this.newsService.getNewsById(id);
     if (!existingNews) {
       throw new NotFoundException('Новость не найдена');
     }
 
-    await this.newsService.deleteNews(newsId);
+    await this.newsService.deleteNews(id);
 
     return {
       message: 'Новость успешно удалена',

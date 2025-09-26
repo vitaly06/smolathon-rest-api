@@ -1,11 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { SmolenskDataResponseDto } from './dto/smolensk-data-response.dto';
 
 @Injectable()
 export class StatisticService {
   constructor(private prisma: PrismaService) {}
 
-  async saveSmolenskData(data: any[]) {
+  async saveSmolenskData(data: any[]): Promise<void> {
     await this.prisma.statistics.createMany({
       data: data.map((d) => ({
         subject: d.subject,
@@ -28,13 +29,14 @@ export class StatisticService {
     const periods = await this.prisma.statistics.findMany({
       select: { period: true },
       distinct: ['period'],
+      orderBy: { period: 'desc' },
     });
     return periods.map((p) => p.period);
   }
 
   async getSmolenskDataForPeriod(
     year: string,
-  ): Promise<Record<string, Array<{ name: string; value: number }>>> {
+  ): Promise<SmolenskDataResponseDto> {
     const data = await this.prisma.statistics.findMany({
       where: {
         period: { contains: year },
@@ -55,7 +57,7 @@ export class StatisticService {
       {} as Record<string, typeof data>,
     );
 
-    const result: Record<string, Array<{ name: string; value: number }>> = {};
+    const result: SmolenskDataResponseDto = {};
     const russianMonths = [
       'январь',
       'февраль',
@@ -99,7 +101,6 @@ export class StatisticService {
         indicators[item.indicatorName] = finalValue / numMonths;
       });
 
-      // Преобразуем indicators в массив объектов { name, value }
       const indicatorArray = Object.entries(indicators).map(
         ([name, value]) => ({
           name,

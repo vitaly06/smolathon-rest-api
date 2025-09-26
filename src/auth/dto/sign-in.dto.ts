@@ -6,19 +6,19 @@ export class SignInDto {
     description: 'Логин пользователя',
     example: 'admin',
     minLength: 3,
-    maxLength: 50,
   })
   @IsString({ message: 'Логин должен быть строкой' })
   @IsNotEmpty({ message: 'Логин обязателен для заполнения' })
+  @MinLength(3, { message: 'Логин должен содержать минимум 3 символа' })
   login: string;
 
   @ApiProperty({
     description: 'Пароль пользователя',
     example: 'password123',
     minLength: 6,
-    maxLength: 100,
   })
   @IsString({ message: 'Пароль должен быть строкой' })
   @IsNotEmpty({ message: 'Пароль обязателен для заполнения' })
+  @MinLength(6, { message: 'Пароль должен содержать минимум 6 символов' })
   password: string;
 }

@@ -2,11 +2,13 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { TokensResponseDto } from './dto/tokens-response.dto';
 
 @Injectable()
 export class AuthService {
@@ -16,9 +18,13 @@ export class AuthService {
     private readonly configService: ConfigService,
   ) {}
 
-  async signIn(login: string, password: string) {
+  async signIn(
+    login: string,
+    password: string,
+  ): Promise<{ tokens: TokensResponseDto; user: any }> {
     const user = await this.prisma.user.findUnique({
       where: { login },
+      include: { role: true },
     });
 
     if (!user) {
@@ -28,23 +34,31 @@ export class AuthService {
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      throw new NotFoundException('Неверный пароль');
+      throw new UnauthorizedException('Неверный пароль');
     }
 
     const tokens = await this.getTokens(user.id, user.login);
     await this.updateRefreshToken(user.id, tokens.refreshToken);
-    return { tokens, user };
+
+    // Убираем пароль и refreshToken из ответа
+    const { password: _, refreshToken: __, ...userWithoutSensitiveData } = user;
+
+    return { tokens, user: userWithoutSensitiveData };
   }
 
-  async refreshToken(userId: number, refreshToken: string) {
+  async refreshToken(
+    userId: number,
+    refreshToken: string,
+  ): Promise<TokensResponseDto> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
+
     if (!user || !user.refreshToken) {
       throw new ForbiddenException('Доступ запрещён');
     }
 
-    // Проверяем соответствие токена без хэширования
+    // Проверяем соответствие токена
     if (refreshToken !== user.refreshToken) {
       throw new ForbiddenException('Доступ запрещён');
     }
@@ -55,16 +69,17 @@ export class AuthService {
     return tokens;
   }
 
-  async updateRefreshToken(userId: number, refreshToken: string) {
+  private async updateRefreshToken(userId: number, refreshToken: string) {
     await this.prisma.user.update({
       where: { id: userId },
-      data: {
-        refreshToken,
-      },
+      data: { refreshToken },
     });
   }
 
-  async getTokens(userId: number, login: string) {
+  private async getTokens(
+    userId: number,
+    login: string,
+  ): Promise<TokensResponseDto> {
     const payload = { sub: userId, login };
 
     const [accessToken, refreshToken] = await Promise.all([

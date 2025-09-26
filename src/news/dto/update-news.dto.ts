@@ -7,7 +7,7 @@ export class UpdateNewsDto {
     example: 'Обновленный заголовок',
     required: false,
   })
-  @IsString()
+  @IsString({ message: 'Заголовок должен быть строкой' })
   @IsOptional()
   title?: string;
 
@@ -16,7 +16,7 @@ export class UpdateNewsDto {
     example: 'Обновленный текст новости...',
     required: false,
   })
-  @IsString()
+  @IsString({ message: 'Текст новости должен быть строкой' })
   @IsOptional()
   body?: string;
 }

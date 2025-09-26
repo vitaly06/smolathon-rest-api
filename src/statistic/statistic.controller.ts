@@ -9,6 +9,7 @@ import {
   BadRequestException,
   Get,
   Query,
+  HttpStatus,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -18,11 +19,19 @@ import {
   ApiBody,
   ApiResponse,
   ApiQuery,
+  ApiBadRequestResponse,
+  ApiNotFoundResponse,
+  ApiPayloadTooLargeResponse,
+  ApiInternalServerErrorResponse,
 } from '@nestjs/swagger';
 import type { Express } from 'express';
 import { Readable } from 'stream';
 import csv from 'csv-parser';
 import { StatisticService } from './statistic.service';
+import { UploadCsvResponseDto } from './dto/upload-csv-response.dto';
+import { SmolenskDataResponseDto } from './dto/smolensk-data-response.dto';
+import { PeriodsResponseDto } from './dto/periods-response.dto';
+import { UploadCsvDto } from './dto/upload-csv.dto';
 
 interface CsvRow {
   subject?: string;
@@ -46,73 +55,35 @@ export class StatisticController {
   @ApiBody({
     description:
       'CSV файл с данными статистики дорожно-транспортных происшествий',
-    schema: {
-      type: 'object',
-      properties: {
-        file: {
-          type: 'string',
-          format: 'binary',
-          description:
-            'CSV файл в формате: Субъект, Пункт ФПСР, Наименование показателя, Значение показателя',
-        },
-      },
-      required: ['file'],
-    },
+    type: UploadCsvDto,
   })
   @ApiResponse({
-    status: 201,
+    status: HttpStatus.CREATED,
     description: 'Данные успешно загружены и обработаны',
-    schema: {
-      type: 'object',
-      properties: {
-        message: {
-          type: 'string',
-          example: 'Данные Смоленской области успешно загружены',
-        },
-        totalRows: { type: 'number', example: 50 },
-        smolenskRows: { type: 'number', example: 4 },
-        data: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              subject: { type: 'string', example: 'Смоленская область' },
-              pointFpsr: { type: 'string', example: '3_1' },
-              indicatorName: {
-                type: 'string',
-                example: 'Количество ДТП с пострадавшими',
-              },
-              indicatorValue: { type: 'string', example: '167' },
-              period: { type: 'string', example: 'январь-апрель 2024 г.' },
-            },
-          },
-        },
-      },
-    },
+    type: UploadCsvResponseDto,
   })
-  @ApiResponse({
-    status: 400,
+  @ApiBadRequestResponse({
     description: 'Ошибка валидации файла или обработки данных',
     schema: {
-      type: 'object',
-      properties: {
-        statusCode: { type: 'number', example: 400 },
-        message: { type: 'string', example: 'Ошибка обработки CSV файла: ...' },
-        error: { type: 'string', example: 'Bad Request' },
+      example: {
+        statusCode: 400,
+        message: 'Файл должен иметь расширение .csv',
+        error: 'Bad Request',
       },
     },
   })
-  @ApiResponse({
-    status: 413,
+  @ApiPayloadTooLargeResponse({
     description: 'Файл слишком большой',
     schema: {
-      type: 'object',
-      properties: {
-        statusCode: { type: 'number', example: 413 },
-        message: { type: 'string', example: 'File too large' },
-        error: { type: 'string', example: 'Payload Too Large' },
+      example: {
+        statusCode: 413,
+        message: 'File too large',
+        error: 'Payload Too Large',
       },
     },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Внутренняя ошибка сервера',
   })
   @UseInterceptors(FileInterceptor('file'))
   async uploadCsv(
@@ -120,15 +91,17 @@ export class StatisticController {
       new ParseFilePipe({
         validators: [
           new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 15 }), // 15MB
+          new FileTypeValidator({ fileType: 'text/csv' }),
         ],
       }),
     )
     file: Express.Multer.File,
-  ) {
+  ): Promise<UploadCsvResponseDto> {
     try {
       if (!file.originalname.toLowerCase().endsWith('.csv')) {
         throw new BadRequestException('Файл должен иметь расширение .csv');
       }
+
       const results = await this.parseCsvFile(file.buffer);
 
       // Фильтруем данные по Смоленской области
@@ -142,6 +115,7 @@ export class StatisticController {
           message: 'Файл загружен, но данные по Смоленской области не найдены',
           totalRows: results.length,
           smolenskRows: 0,
+          data: [],
         };
       }
 
@@ -155,6 +129,9 @@ export class StatisticController {
         data: smolenskData,
       };
     } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
       throw new BadRequestException(
         `Ошибка обработки CSV файла: ${error.message}`,
       );
@@ -165,70 +142,44 @@ export class StatisticController {
   @ApiOperation({
     summary: 'Получение данных по Смоленской области',
     description:
-      'Возвращает статистические данные по Смоленской области, группированные по месяцам для указанного года. По умолчанию - текущий год. Данные усредняются по месяцам в периоде.',
+      'Возвращает статистические данные по Смоленской области, группированные по месяцам для указанного года',
   })
   @ApiQuery({
     name: 'period',
     required: false,
     description: 'Год для фильтрации данных (по умолчанию текущий год)',
     example: '2024',
+    type: String,
   })
   @ApiResponse({
-    status: 200,
+    status: HttpStatus.OK,
     description: 'Успешное получение данных',
-    schema: {
-      type: 'object',
-      additionalProperties: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: {
-            name: { type: 'string', example: 'Количество ДТП с пострадавшими' },
-            value: { type: 'number', example: 41.75 },
-          },
-        },
-      },
-      example: {
-        'январь 2024': [
-          { name: 'Количество ДТП с пострадавшими', value: 41.75 },
-          { name: 'Другой показатель', value: 10.5 },
-        ],
-        'февраль 2024': [
-          { name: 'Количество ДТП с пострадавшими', value: 41.75 },
-          { name: 'Другой показатель', value: 10.5 },
-        ],
-      },
-    },
+    type: SmolenskDataResponseDto,
   })
-  @ApiResponse({
-    status: 400,
+  @ApiBadRequestResponse({
     description: 'Неверный формат периода',
     schema: {
-      type: 'object',
-      properties: {
-        statusCode: { type: 'number', example: 400 },
-        message: {
-          type: 'string',
-          example:
-            'Неверный формат периода. Ожидается год, например, 2024 или период с годом.',
-        },
-        error: { type: 'string', example: 'Bad Request' },
+      example: {
+        statusCode: 400,
+        message:
+          'Неверный формат периода. Ожидается год, например, 2024 или период с годом.',
+        error: 'Bad Request',
       },
     },
   })
-  @ApiResponse({
-    status: 404,
+  @ApiNotFoundResponse({
     description: 'Данные по Смоленской области не найдены',
     schema: {
-      type: 'object',
-      properties: {
-        statusCode: { type: 'number', example: 404 },
-        message: { type: 'string', example: 'Данные не найдены' },
-        error: { type: 'string', example: 'Not Found' },
+      example: {
+        statusCode: 404,
+        message: 'Данные не найдены',
+        error: 'Not Found',
       },
     },
   })
-  async getSmolenskData(@Query('period') period?: string) {
+  async getSmolenskData(
+    @Query('period') period?: string,
+  ): Promise<SmolenskDataResponseDto> {
     let year = new Date().getFullYear().toString();
     if (period) {
       const match = period.match(/\d{4}/);
@@ -250,21 +201,19 @@ export class StatisticController {
       'Возвращает уникальные периоды из базы данных для выбора в интерфейсе',
   })
   @ApiResponse({
-    status: 200,
+    status: HttpStatus.OK,
     description: 'Успешное получение периодов',
-    schema: {
-      type: 'array',
-      items: { type: 'string', example: 'январь-апрель 2024 г.' },
-    },
+    type: PeriodsResponseDto,
   })
-  async getPeriods() {
-    return this.statisticsService.getUniquePeriods();
+  async getPeriods(): Promise<PeriodsResponseDto> {
+    const periods = await this.statisticsService.getUniquePeriods();
+    return { periods };
   }
 
   private parseCsvFile(buffer: Buffer): Promise<any[]> {
     return new Promise((resolve, reject) => {
       const csvString = buffer.toString('utf-8');
-      const lines = csvString.split(/\r?\n/); // Разделяем на строки
+      const lines = csvString.split(/\r?\n/);
       if (lines.length === 0) {
         return reject(new Error('Пустой файл'));
       }
@@ -273,7 +222,7 @@ export class StatisticController {
       const firstLine = lines[0].trim();
       const headers = firstLine
         .split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)
-        .map((h) => h.replace(/"/g, '').trim()); // Простой парсер заголовков с учётом кавычек
+        .map((h) => h.replace(/"/g, '').trim());
 
       let period = 'Неизвестный период';
       if (headers.length >= 4) {
@@ -310,7 +259,7 @@ export class StatisticController {
             pointFpsr: data.pointFpsr?.trim(),
             indicatorName: data.indicatorName?.trim(),
             indicatorValue: data.indicatorValue?.trim(),
-            period: period, // Добавляем извлечённый период
+            period: period,
           });
         })
         .on('end', () => resolve(results))

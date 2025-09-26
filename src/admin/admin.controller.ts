@@ -1,49 +1,35 @@
 import { Body, Controller, HttpStatus, Post, UseGuards } from '@nestjs/common';
 import { AdminService } from './admin.service';
-import { addEmployeeDto } from './dto/add-employee.dto';
-import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
+import { AddEmployeeDto } from './dto/add-employee.dto';
+import { EmployeeResponseDto } from './dto/employee-response.dto';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiBearerAuth,
+  ApiConflictResponse,
+  ApiForbiddenResponse,
+  ApiUnauthorizedResponse,
+  ApiBadRequestResponse,
+} from '@nestjs/swagger';
+import { JwtAuthGuard } from '../common/guards/jwt.guard';
 
+@ApiTags('Admin')
+@ApiBearerAuth()
 @Controller('admin')
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
+  @Post('add-employee')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'Добавление нового сотрудника',
     description:
       'Создание учетной записи для нового сотрудника. Доступно только администраторам.',
   })
-  @ApiResponse({
-    status: HttpStatus.CREATED,
-    description: 'Сотрудник успешно создан',
-    schema: {
-      example: {
-        id: 1,
-        login: 'ivanov',
-
-        roleId: 2,
-        createdAt: '2024-01-01T10:00:00.000Z',
-      },
-    },
-  })
-  @ApiResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: 'Неверные данные запроса',
-  })
-  @ApiResponse({
-    status: HttpStatus.UNAUTHORIZED,
-    description: 'Пользователь не авторизован',
-  })
-  @ApiResponse({
-    status: HttpStatus.FORBIDDEN,
-    description: 'Недостаточно прав (требуется роль администратора)',
-  })
-  @ApiResponse({
-    status: HttpStatus.CONFLICT,
-    description: 'Пользователь с таким логином уже существует',
-  })
   @ApiBody({
-    type: addEmployeeDto,
+    type: AddEmployeeDto,
     examples: {
       example1: {
         summary: 'Пример создания сотрудника',
@@ -55,9 +41,53 @@ export class AdminController {
       },
     },
   })
-  @UseGuards(JwtAuthGuard)
-  @Post('add-employee')
-  async addEmployee(@Body() dto: addEmployeeDto) {
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Сотрудник успешно создан',
+    type: EmployeeResponseDto,
+  })
+  @ApiBadRequestResponse({
+    description: 'Неверные данные запроса',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: [
+          'Логин должен содержать минимум 3 символа',
+          'Пароль должен содержать минимум 6 символов',
+          'Id роли должен быть целым числом',
+        ],
+        error: 'Bad Request',
+      },
+    },
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Пользователь не авторизован',
+    schema: {
+      example: {
+        statusCode: 401,
+        message: 'Unauthorized',
+      },
+    },
+  })
+  @ApiForbiddenResponse({
+    description: 'Недостаточно прав (требуется роль администратора)',
+    schema: {
+      example: {
+        statusCode: 403,
+        message: 'Forbidden resource',
+      },
+    },
+  })
+  @ApiConflictResponse({
+    description: 'Пользователь с таким логином уже существует',
+    schema: {
+      example: {
+        statusCode: 409,
+        message: 'Пользователь с таким логином уже существует',
+      },
+    },
+  })
+  async addEmployee(@Body() dto: AddEmployeeDto): Promise<EmployeeResponseDto> {
     return await this.adminService.addEmployee(
       dto.login,
       dto.password,

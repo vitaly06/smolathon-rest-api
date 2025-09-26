@@ -1,7 +1,10 @@
+import { ApiProperty } from '@nestjs/swagger';
+
 export class UploadCsvDto {
-  subject: string;
-  pointFpsr: string;
-  indicatorName: string;
-  indicatorValue: string;
-  period: string;
+  @ApiProperty({
+    type: 'string',
+    format: 'binary',
+    description: 'CSV файл с данными статистики',
+  })
+  file: any;
 }
