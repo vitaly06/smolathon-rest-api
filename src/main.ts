@@ -29,7 +29,16 @@ async function bootstrap() {
 
     const document = SwaggerModule.createDocument(app, config);
 
-    SwaggerModule.setup('docs', app, document);
+    SwaggerModule.setup('docs', app, document, {
+      swaggerOptions: {
+        urls: [
+          {
+            url: '/docs-yaml',
+            name: 'Download YAML',
+          },
+        ],
+      },
+    });
 
     await app.listen(3000);
   } catch (error) {

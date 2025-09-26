@@ -119,10 +119,9 @@ export class TelegramBotService implements OnApplicationBootstrap {
   }): Promise<boolean> {
     try {
       const message = `
-🎯 *Новая заявка на вакансию*
+*Новая заявка на вакансию*
 
-* Вакансия: ${jobData.vacancy}*
-*ID:* ${jobData.id || 'Новый'}
+*Вакансия:* ${jobData.vacancy}
 *ФИО:* ${jobData.fullName}
 *Телефон:* ${jobData.phoneNumber}
 *Email:* ${jobData.email}
