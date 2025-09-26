@@ -131,7 +131,6 @@ export class NewsController {
           description: 'Новое изображение новости',
         },
       },
-      required: [],
     },
   })
   @ApiResponse({

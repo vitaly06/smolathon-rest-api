@@ -1,4 +1,3 @@
-// controllers/statistic.controller.ts
 import {
   Controller,
   Post,
@@ -9,6 +8,7 @@ import {
   FileTypeValidator,
   BadRequestException,
   Get,
+  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -17,6 +17,7 @@ import {
   ApiConsumes,
   ApiBody,
   ApiResponse,
+  ApiQuery,
 } from '@nestjs/swagger';
 import type { Express } from 'express';
 import { Readable } from 'stream';
@@ -82,7 +83,7 @@ export class StatisticController {
                 example: 'Количество ДТП с пострадавшими',
               },
               indicatorValue: { type: 'string', example: '167' },
-              period: { type: 'string', example: 'январь - март 2018 г.' },
+              period: { type: 'string', example: 'январь-апрель 2024 г.' },
             },
           },
         },
@@ -164,28 +165,54 @@ export class StatisticController {
   @ApiOperation({
     summary: 'Получение данных по Смоленской области',
     description:
-      'Возвращает все сохраненные статистические данные по Смоленской области',
+      'Возвращает статистические данные по Смоленской области, группированные по месяцам для указанного года. По умолчанию - текущий год. Данные усредняются по месяцам в периоде.',
+  })
+  @ApiQuery({
+    name: 'period',
+    required: false,
+    description: 'Год для фильтрации данных (по умолчанию текущий год)',
+    example: '2024',
   })
   @ApiResponse({
     status: 200,
     description: 'Успешное получение данных',
     schema: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          id: { type: 'number', example: 1 },
-          subject: { type: 'string', example: 'Смоленская область' },
-          pointFpsr: { type: 'string', example: '3_1' },
-          indicatorName: {
-            type: 'string',
-            example: 'Количество ДТП с пострадавшими',
+      type: 'object',
+      additionalProperties: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            name: { type: 'string', example: 'Количество ДТП с пострадавшими' },
+            value: { type: 'number', example: 41.75 },
           },
-          indicatorValue: { type: 'number', example: 167 },
-          indicatorValueString: { type: 'string', example: '167' },
-          period: { type: 'string', example: 'январь - март 2018 г.' },
-          createdAt: { type: 'string', example: '2024-01-01T00:00:00.000Z' },
         },
+      },
+      example: {
+        'январь 2024': [
+          { name: 'Количество ДТП с пострадавшими', value: 41.75 },
+          { name: 'Другой показатель', value: 10.5 },
+        ],
+        'февраль 2024': [
+          { name: 'Количество ДТП с пострадавшими', value: 41.75 },
+          { name: 'Другой показатель', value: 10.5 },
+        ],
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Неверный формат периода',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 400 },
+        message: {
+          type: 'string',
+          example:
+            'Неверный формат периода. Ожидается год, например, 2024 или период с годом.',
+        },
+        error: { type: 'string', example: 'Bad Request' },
       },
     },
   })
@@ -201,15 +228,66 @@ export class StatisticController {
       },
     },
   })
-  async getSmolenskData() {
-    return this.statisticsService.getSmolenskData();
+  async getSmolenskData(@Query('period') period?: string) {
+    let year = new Date().getFullYear().toString();
+    if (period) {
+      const match = period.match(/\d{4}/);
+      if (match) {
+        year = match[0];
+      } else {
+        throw new BadRequestException(
+          'Неверный формат периода. Ожидается год, например, 2024 или период с годом.',
+        );
+      }
+    }
+    return this.statisticsService.getSmolenskDataForPeriod(year);
+  }
+
+  @Get('periods')
+  @ApiOperation({
+    summary: 'Получение списка доступных периодов',
+    description:
+      'Возвращает уникальные периоды из базы данных для выбора в интерфейсе',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Успешное получение периодов',
+    schema: {
+      type: 'array',
+      items: { type: 'string', example: 'январь-апрель 2024 г.' },
+    },
+  })
+  async getPeriods() {
+    return this.statisticsService.getUniquePeriods();
   }
 
   private parseCsvFile(buffer: Buffer): Promise<any[]> {
     return new Promise((resolve, reject) => {
-      const results: any[] = [];
-      const readableStream = Readable.from(buffer.toString());
+      const csvString = buffer.toString('utf-8');
+      const lines = csvString.split(/\r?\n/); // Разделяем на строки
+      if (lines.length === 0) {
+        return reject(new Error('Пустой файл'));
+      }
 
+      // Первая строка - заголовки
+      const firstLine = lines[0].trim();
+      const headers = firstLine
+        .split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)
+        .map((h) => h.replace(/"/g, '').trim()); // Простой парсер заголовков с учётом кавычек
+
+      let period = 'Неизвестный период';
+      if (headers.length >= 4) {
+        const match = headers[3].match(/\(за\s+(.*?)\)/);
+        if (match) {
+          period = match[1].trim();
+        }
+      }
+
+      // Теперь парсим данные начиная со второй строки
+      const dataLines = lines.slice(1).join('\n');
+      const readableStream = Readable.from(dataLines);
+
+      const results: any[] = [];
       readableStream
         .pipe(
           csv({
@@ -219,20 +297,10 @@ export class StatisticController {
               'indicatorName',
               'indicatorValue',
             ],
-            mapHeaders: ({ header, index }) => {
-              // Пропускаем заголовки
-              if (
-                index === 0 &&
-                (header.includes('Субъект') || header.includes('Subject'))
-              ) {
-                return null;
-              }
-              return header;
-            },
           }),
         )
         .on('data', (data: CsvRow) => {
-          // Пропускаем строки с английскими заголовками
+          // Пропускаем строки с английскими заголовками или пустые
           if (data.subject === 'Subject' || !data.subject) {
             return;
           }
@@ -242,7 +310,7 @@ export class StatisticController {
             pointFpsr: data.pointFpsr?.trim(),
             indicatorName: data.indicatorName?.trim(),
             indicatorValue: data.indicatorValue?.trim(),
-            period: 'январь - март 2018 г.',
+            period: period, // Добавляем извлечённый период
           });
         })
         .on('end', () => resolve(results))

@@ -240,6 +240,42 @@ ALTER SEQUENCE public."FineStatistic_id_seq" OWNED BY public."FineStatistic".id;
 
 
 --
+-- Name: JobResponse; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."JobResponse" (
+    id integer NOT NULL,
+    "fullName" text NOT NULL,
+    "phoneNumber" text NOT NULL,
+    email text NOT NULL
+);
+
+
+ALTER TABLE public."JobResponse" OWNER TO postgres;
+
+--
+-- Name: JobResponse_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public."JobResponse_id_seq"
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public."JobResponse_id_seq" OWNER TO postgres;
+
+--
+-- Name: JobResponse_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public."JobResponse_id_seq" OWNED BY public."JobResponse".id;
+
+
+--
 -- Name: News; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -644,6 +680,13 @@ ALTER TABLE ONLY public."FineStatistic" ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
+-- Name: JobResponse id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."JobResponse" ALTER COLUMN id SET DEFAULT nextval('public."JobResponse_id_seq"'::regclass);
+
+
+--
 -- Name: News id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -747,6 +790,19 @@ COPY public."FineStatistic" (id, date, "violationsCount", "decreesCount", "impos
 
 
 --
+-- Data for Name: JobResponse; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public."JobResponse" (id, "fullName", "phoneNumber", email) FROM stdin;
+1	Садиков Виталий Дмитриевич	+79510341677	vitaly.sadikov1@yandex.ru
+2	Садиков Виталий Дмитриевич	+79510341677	vitaly.sadikov1@yandex.ru
+3	Садиков Виталий Дмитриевич	+79510341677	vitaly.sadikov1@yandex.ru
+4	Садиков Виталий Дмитриевич	+79510341677	vitaly.sadikov1@yandex.ru
+5	Садиков Виталий Дмитриевич	+79510341677	vitaly.sadikov1@yandex.ru
+\.
+
+
+--
 -- Data for Name: News; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -788,6 +844,14 @@ COPY public."Service" (id, name, description, cost, "orderFormDetails", "created
 --
 
 COPY public."Statistics" (id, subject, "pointFpsr", "indicatorName", "indicatorValue", "indicatorValueString", period, "createdAt") FROM stdin;
+1	Смоленская область	3_1	Количество ДТП с пострадавшими	529	529	январь - август 2024 г.	2025-09-26 10:34:41.149
+2	Смоленская область	3_1	Количество лиц, погибших в результате ДТП	70	70	январь - август 2024 г.	2025-09-26 10:34:41.23
+3	Смоленская область	3_1	Количество лиц, получивших ранения в результате совершения ДТП	661	661	январь - август 2024 г.	2025-09-26 10:34:41.233
+4	Смоленская область	3_1	Число погибших на 100 пострадавших	9.575923393	9,575923393	январь - август 2024 г.	2025-09-26 10:34:41.237
+5	14. Смоленская область	3_1	Количество ДТП с пострадавшими	183	183	январь-апрель 2024 г.	2025-09-26 10:34:50.653
+6	14. Смоленская область	3_1	Количество лиц, погибших в результате ДТП	20	20	январь-апрель 2024 г.	2025-09-26 10:34:50.658
+7	14. Смоленская область	3_1	Количество лиц, получивших ранения в результате совершения ДТП	229	229	январь-апрель 2024 г.	2025-09-26 10:34:50.663
+8	14. Смоленская область	3_1	Число погибших на 100 пострадавших	8.032128514	8,032128514	январь-апрель 2024 г.	2025-09-26 10:34:50.665
 \.
 
 
@@ -812,7 +876,7 @@ COPY public."TrafficLight" (id, address, type, "installationDate", status, latit
 --
 
 COPY public."User" (id, login, password, "roleId", "createdAt", "updatedAt", "refreshToken") FROM stdin;
-1	admin	$2b$10$a7aUXiPb1S/dEt6Wz5BpWe8DR/3nPy7COwsqKOjoW78oh3W0c/DzO	2	2025-09-25 05:15:37.772	2025-09-25 05:15:37.772	\N
+1	admin	$2b$10$a7aUXiPb1S/dEt6Wz5BpWe8DR/3nPy7COwsqKOjoW78oh3W0c/DzO	2	2025-09-25 05:15:37.772	2025-09-26 08:38:56.993	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImxvZ2luIjoiYWRtaW4iLCJpYXQiOjE3NTg4NzU5MzYsImV4cCI6MTc1OTQ4MDczNn0.ihFaW7g3fAikCsJjH5NTHilAJ57kY26FnZhDqbXuUvc
 \.
 
 
@@ -821,6 +885,7 @@ COPY public."User" (id, login, password, "roleId", "createdAt", "updatedAt", "re
 --
 
 COPY public."Vacancy" (id, title, description, "userId", address, experience, salary) FROM stdin;
+1	Менеджер	Работа с покупателями, консультирование, продажа. Работа с кассой, и многое другое	\N	г. Смоленск, ул. Советская	Не требуется	55000
 \.
 
 
@@ -868,6 +933,13 @@ SELECT pg_catalog.setval('public."FineStatistic_id_seq"', 1, false);
 
 
 --
+-- Name: JobResponse_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public."JobResponse_id_seq"', 5, true);
+
+
+--
 -- Name: News_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -899,7 +971,7 @@ SELECT pg_catalog.setval('public."Service_id_seq"', 1, false);
 -- Name: Statistics_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."Statistics_id_seq"', 1, false);
+SELECT pg_catalog.setval('public."Statistics_id_seq"', 8, true);
 
 
 --
@@ -927,7 +999,7 @@ SELECT pg_catalog.setval('public."User_id_seq"', 1, true);
 -- Name: Vacancy_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."Vacancy_id_seq"', 1, false);
+SELECT pg_catalog.setval('public."Vacancy_id_seq"', 1, true);
 
 
 --
@@ -968,6 +1040,14 @@ ALTER TABLE ONLY public."EvacuatorRoute"
 
 ALTER TABLE ONLY public."FineStatistic"
     ADD CONSTRAINT "FineStatistic_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: JobResponse JobResponse_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."JobResponse"
+    ADD CONSTRAINT "JobResponse_pkey" PRIMARY KEY (id);
 
 
 --
