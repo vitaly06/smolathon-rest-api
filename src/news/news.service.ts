@@ -4,6 +4,7 @@ import { UpdateNewsDto } from './dto/update-news.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { NewsResponseDto } from './dto/news-response.dto';
+import { News } from '@prisma/client';
 
 @Injectable()
 export class NewsService {
@@ -68,7 +69,7 @@ export class NewsService {
       },
     });
 
-    return news.map((item) => this.transformNews(item));
+    return news.map((item: News) => this.transformNews(item));
   }
 
   async getNewsById(id: number): Promise<NewsResponseDto> {
@@ -97,7 +98,7 @@ export class NewsService {
     });
   }
 
-  private transformNews(news: any): NewsResponseDto {
+  private transformNews(news: News): NewsResponseDto {
     return {
       id: news.id,
       title: news.title,
