@@ -1,8 +1,9 @@
-import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
+import { Injectable, OnApplicationBootstrap, Logger } from '@nestjs/common';
 import { Telegraf } from 'telegraf';
 
 @Injectable()
 export class TelegramBotService implements OnApplicationBootstrap {
+  private readonly logger = new Logger(TelegramBotService.name);
   private bot: Telegraf | null = null;
   private isReady = false;
   private pendingMessages: Array<{
@@ -19,49 +20,63 @@ export class TelegramBotService implements OnApplicationBootstrap {
     const token = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
 
+    this.logger.log(`TELEGRAM_BOT_TOKEN: ${token ? 'Задан' : 'Отсутствует'}`);
+    this.logger.log(`TELEGRAM_CHAT_ID: ${chatId ? 'Задан' : 'Отсутствует'}`);
+
     if (!token || !chatId) {
-      console.warn('Telegram credentials not set, using stub mode');
+      this.logger.warn(
+        'Telegram credentials not set, bot will not be initialized',
+      );
       return;
     }
 
     try {
-      console.log('Initializing Telegram bot...');
+      this.logger.log('Инициализация Telegram бота...');
       this.bot = new Telegraf(token);
 
-      // Проверяем соединение с Telegram API
-      await this.bot.telegram.getMe();
+      // Проверка соединения с Telegram API (токен валиден)
+      const botInfo = await this.bot.telegram.getMe();
+      this.logger.log(`Информация о боте: ${JSON.stringify(botInfo)}`);
 
-      // Запускаем бота без блокировки
-      this.bot
-        .launch()
-        .then(() => {
-          console.log('✅ Telegram bot started successfully');
-          this.isReady = true;
+      // Поскольку бот только отправляет сообщения, polling не нужен — устанавливаем ready сразу
+      this.isReady = true;
+      this.logger.log(
+        '✅ Telegram бот готов к отправке сообщений (без polling)',
+      );
 
-          // Обрабатываем ожидающие сообщения
-          this.processPendingMessages();
-        })
-        .catch((error) => {
-          console.error('❌ Telegram bot failed to start:', error);
-          // Отклоняем все ожидающие сообщения
-          this.rejectPendingMessages(error);
-        });
+      // Обработка ожидающих сообщений
+      this.processPendingMessages();
     } catch (error) {
-      console.error('Telegram bot initialization error:', error);
+      this.logger.error(`Ошибка инициализации Telegram бота: ${error.message}`);
+      this.rejectPendingMessages(error);
     }
   }
 
   private processPendingMessages() {
-    this.pendingMessages.forEach(({ jobData, resolve }) => {
-      this.sendMessageInternal(jobData).then(resolve);
+    this.logger.log(
+      `Обработка ${this.pendingMessages.length} сообщений в очереди...`,
+    );
+    this.pendingMessages.forEach(({ jobData, resolve, reject }, index) => {
+      this.logger.log(
+        `Обработка сообщения ${index + 1}: ${JSON.stringify(jobData)}`,
+      );
+      this.sendMessageInternal(jobData)
+        .then(resolve)
+        .catch((error) => {
+          this.logger.error(
+            `Ошибка обработки сообщения ${index + 1}: ${error.message}`,
+          );
+          reject(error);
+        });
     });
     this.pendingMessages = [];
   }
 
   private rejectPendingMessages(error: any) {
-    this.pendingMessages.forEach(({ reject }) => {
-      reject(error);
-    });
+    this.logger.error(
+      `Отклонение ${this.pendingMessages.length} сообщений из-за ошибки: ${error.message}`,
+    );
+    this.pendingMessages.forEach(({ reject }) => reject(error));
     this.pendingMessages = [];
   }
 
@@ -70,24 +85,28 @@ export class TelegramBotService implements OnApplicationBootstrap {
     phoneNumber: string;
     email: string;
     id?: number;
+    vacancy: string;
   }): Promise<boolean> {
-    // Если бот еще не готов, добавляем сообщение в очередь
+    // Если бот не готов, добавляем в очередь с таймаутом
     if (!this.isReady || !this.bot) {
-      console.log('⏳ Telegram bot not ready, queuing message...');
-
+      this.logger.warn('⏳ Telegram бот не готов, добавление в очередь...');
       return new Promise((resolve, reject) => {
         this.pendingMessages.push({ jobData, resolve, reject });
-
-        // Устанавливаем таймаут для очереди (30 секунд)
         setTimeout(() => {
           if (!this.isReady) {
-            console.log('📨 Telegram bot timeout, logging instead:', jobData);
-            resolve(true); // Все равно считаем успешным, но логируем
+            const timeoutError = new Error(
+              'Telegram бот не инициализирован после таймаута',
+            );
+            this.logger.error(
+              `Таймаут: ${timeoutError.message}, сообщение: ${JSON.stringify(jobData)}`,
+            );
+            reject(timeoutError);
           }
-        }, 30000);
+        }, 30000); // 30 секунд таймаут
       });
     }
 
+    // Если готов, отправляем сразу
     return this.sendMessageInternal(jobData);
   }
 
@@ -96,39 +115,37 @@ export class TelegramBotService implements OnApplicationBootstrap {
     phoneNumber: string;
     email: string;
     id?: number;
+    vacancy: string;
   }): Promise<boolean> {
     try {
       const message = `
 🎯 *Новая заявка на вакансию*
 
-📝 *ID:* ${jobData.id || 'Новый'}
-👤 *ФИО:* ${jobData.fullName}
-📞 *Телефон:* ${jobData.phoneNumber}
-📧 *Email:* ${jobData.email}
-⏰ *Время:* ${new Date().toLocaleString('ru-RU')}
+* Вакансия: ${jobData.vacancy}*
+*ID:* ${jobData.id || 'Новый'}
+*ФИО:* ${jobData.fullName}
+*Телефон:* ${jobData.phoneNumber}
+*Email:* ${jobData.email}
+
       `;
 
       await this.bot!.telegram.sendMessage(
         process.env.TELEGRAM_CHAT_ID!,
         message,
-        {
-          parse_mode: 'Markdown',
-        },
+        { parse_mode: 'Markdown' },
       );
 
-      console.log('✅ Notification sent to Telegram');
+      this.logger.log('✅ Уведомление отправлено в Telegram');
       return true;
     } catch (error) {
-      console.error('❌ Error sending to Telegram:', error);
-      // При ошибке отправки тоже логируем локально
-      console.log('📨 Fallback logging:', jobData);
-      return true; // Все равно возвращаем true, так как сообщение обработано
+      this.logger.error(`❌ Ошибка отправки в Telegram: ${error.message}`);
+      throw error; // Прокидываем ошибку для обработки выше
     }
   }
 
   async onModuleDestroy() {
     if (this.bot) {
-      this.bot.stop();
+      this.logger.log('Telegram бот остановлен (без polling)');
     }
   }
 }

@@ -63,11 +63,15 @@ export class VacancyService {
     });
 
     try {
+      const vacancy = await this.prisma.vacancy.findUnique({
+        where: { id: dto.vacancyId },
+      });
       await this.telegramBotService.sendJobResponseNotification({
         id: response.id,
         fullName: response.fullName,
         phoneNumber: response.phoneNumber,
         email: response.email,
+        vacancy: vacancy?.title || '',
       });
 
       return { message: 'Заявка успешна отправлена в телеграм' };
