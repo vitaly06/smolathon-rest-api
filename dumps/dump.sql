@@ -33,6 +33,19 @@ ALTER SCHEMA public OWNER TO postgres;
 COMMENT ON SCHEMA public IS '';
 
 
+--
+-- Name: ResponseStatus; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE public."ResponseStatus" AS ENUM (
+    'NOT_RESOLVED',
+    'PROCCESS',
+    'SOLVED'
+);
+
+
+ALTER TYPE public."ResponseStatus" OWNER TO postgres;
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -45,7 +58,8 @@ CREATE TABLE public."BoomLiftRentalResponse" (
     id integer NOT NULL,
     "fullName" text NOT NULL,
     "phoneNumber" text NOT NULL,
-    email text NOT NULL
+    email text NOT NULL,
+    status public."ResponseStatus" DEFAULT 'NOT_RESOLVED'::public."ResponseStatus" NOT NULL
 );
 
 
@@ -154,7 +168,8 @@ CREATE TABLE public."DocumentationDevelopmentResponse" (
     id integer NOT NULL,
     "fullName" text NOT NULL,
     "phoneNumber" text NOT NULL,
-    email text NOT NULL
+    email text NOT NULL,
+    status public."ResponseStatus" DEFAULT 'NOT_RESOLVED'::public."ResponseStatus" NOT NULL
 );
 
 
@@ -190,7 +205,8 @@ CREATE TABLE public."JobResponse" (
     id integer NOT NULL,
     "fullName" text NOT NULL,
     "phoneNumber" text NOT NULL,
-    email text NOT NULL
+    email text NOT NULL,
+    status public."ResponseStatus" DEFAULT 'NOT_RESOLVED'::public."ResponseStatus" NOT NULL
 );
 
 
@@ -381,7 +397,8 @@ CREATE TABLE public."TowTruckResponse" (
     "phoneNumber" text NOT NULL,
     email text NOT NULL,
     "carType" text NOT NULL,
-    address text NOT NULL
+    address text NOT NULL,
+    status public."ResponseStatus" DEFAULT 'NOT_RESOLVED'::public."ResponseStatus" NOT NULL
 );
 
 
@@ -593,7 +610,9 @@ ALTER TABLE ONLY public."Vacancy" ALTER COLUMN id SET DEFAULT nextval('public."V
 -- Data for Name: BoomLiftRentalResponse; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public."BoomLiftRentalResponse" (id, "fullName", "phoneNumber", email) FROM stdin;
+COPY public."BoomLiftRentalResponse" (id, "fullName", "phoneNumber", email, status) FROM stdin;
+1	Сидоров Алексей Владимирович	+79995554433	sidorov@example.com	NOT_RESOLVED
+2	Маляров Андрей Васильевич	+79510571829	andrysha.nyasha@example.com	NOT_RESOLVED
 \.
 
 
@@ -623,7 +642,9 @@ COPY public."Document" (id, title, "fileUrl", description, "createdAt", "userId"
 -- Data for Name: DocumentationDevelopmentResponse; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public."DocumentationDevelopmentResponse" (id, "fullName", "phoneNumber", email) FROM stdin;
+COPY public."DocumentationDevelopmentResponse" (id, "fullName", "phoneNumber", email, status) FROM stdin;
+1	Петров Петр Петрович	+7 (999) 987-65-43	petrov@example.com	NOT_RESOLVED
+2	Попов Семён Семёнович	+79999841532	popov@example.com	NOT_RESOLVED
 \.
 
 
@@ -631,12 +652,12 @@ COPY public."DocumentationDevelopmentResponse" (id, "fullName", "phoneNumber", e
 -- Data for Name: JobResponse; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public."JobResponse" (id, "fullName", "phoneNumber", email) FROM stdin;
-1	Садиков Виталий Дмитриевич	+79510341677	vitaly.sadikov1@yandex.ru
-2	Садиков Виталий Дмитриевич	+79510341677	vitaly.sadikov1@yandex.ru
-3	Садиков Виталий Дмитриевич	+79510341677	vitaly.sadikov1@yandex.ru
-4	Садиков Виталий Дмитриевич	+79510341677	vitaly.sadikov1@yandex.ru
-5	Садиков Виталий Дмитриевич	+79510341677	vitaly.sadikov1@yandex.ru
+COPY public."JobResponse" (id, "fullName", "phoneNumber", email, status) FROM stdin;
+1	Садиков Виталий Дмитриевич	+79510341677	vitaly.sadikov1@yandex.ru	NOT_RESOLVED
+2	Садиков Виталий Дмитриевич	+79510341677	vitaly.sadikov1@yandex.ru	NOT_RESOLVED
+3	Садиков Виталий Дмитриевич	+79510341677	vitaly.sadikov1@yandex.ru	NOT_RESOLVED
+4	Садиков Виталий Дмитриевич	+79510341677	vitaly.sadikov1@yandex.ru	NOT_RESOLVED
+5	Садиков Виталий Дмитриевич	+79510341677	vitaly.sadikov1@yandex.ru	NOT_RESOLVED
 \.
 
 
@@ -707,7 +728,9 @@ COPY public."Statistics" (id, subject, "pointFpsr", "indicatorName", "indicatorV
 -- Data for Name: TowTruckResponse; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public."TowTruckResponse" (id, "fullName", "phoneNumber", email, "carType", address) FROM stdin;
+COPY public."TowTruckResponse" (id, "fullName", "phoneNumber", email, "carType", address, status) FROM stdin;
+1	Иванов Иван Иванович	+79991234567	ivanov@example.com	Легковой автомобиль	г. Москва, ул. Ленина, д. 1	NOT_RESOLVED
+2	Садиков Виталий Дмитриевич	+79510341677	vitaly.sadikov1@yandex.ru	Грузовой автомобиль	г. Смоленск, ул. Советская, д. 2	NOT_RESOLVED
 \.
 
 
@@ -741,7 +764,7 @@ COPY public._prisma_migrations (id, checksum, finished_at, migration_name, logs,
 -- Name: BoomLiftRentalResponse_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."BoomLiftRentalResponse_id_seq"', 1, false);
+SELECT pg_catalog.setval('public."BoomLiftRentalResponse_id_seq"', 2, true);
 
 
 --
@@ -762,7 +785,7 @@ SELECT pg_catalog.setval('public."Document_id_seq"', 3, true);
 -- Name: DocumentationDevelopmentResponse_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."DocumentationDevelopmentResponse_id_seq"', 1, false);
+SELECT pg_catalog.setval('public."DocumentationDevelopmentResponse_id_seq"', 2, true);
 
 
 --
@@ -804,7 +827,7 @@ SELECT pg_catalog.setval('public."Statistics_id_seq"', 26, true);
 -- Name: TowTruckResponse_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."TowTruckResponse_id_seq"', 1, false);
+SELECT pg_catalog.setval('public."TowTruckResponse_id_seq"', 2, true);
 
 
 --

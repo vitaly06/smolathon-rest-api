@@ -37,7 +37,7 @@ export class DocumentController {
       example1: {
         summary: 'Пример загрузки документа',
         value: {
-          name: 'Устав учреждения',
+          title: 'Устав учреждения',
           description: 'Какие цели выполняем и как работаем',
           categoryId: 1,
         },
