@@ -273,47 +273,6 @@ ALTER SEQUENCE public."News_id_seq" OWNED BY public."News".id;
 
 
 --
--- Name: Project; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public."Project" (
-    id integer NOT NULL,
-    title text NOT NULL,
-    description text NOT NULL,
-    status text NOT NULL,
-    "startDate" timestamp(3) without time zone NOT NULL,
-    "endDate" timestamp(3) without time zone,
-    "imageUrl" text,
-    "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    "userId" integer
-);
-
-
-ALTER TABLE public."Project" OWNER TO postgres;
-
---
--- Name: Project_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public."Project_id_seq"
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public."Project_id_seq" OWNER TO postgres;
-
---
--- Name: Project_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public."Project_id_seq" OWNED BY public."Project".id;
-
-
---
 -- Name: Role; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -505,6 +464,44 @@ ALTER SEQUENCE public."Vacancy_id_seq" OWNED BY public."Vacancy".id;
 
 
 --
+-- Name: Violation; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."Violation" (
+    id integer NOT NULL,
+    type text NOT NULL,
+    address text NOT NULL,
+    "userId" integer,
+    "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    date timestamp(3) without time zone NOT NULL
+);
+
+
+ALTER TABLE public."Violation" OWNER TO postgres;
+
+--
+-- Name: Violation_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public."Violation_id_seq"
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public."Violation_id_seq" OWNER TO postgres;
+
+--
+-- Name: Violation_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public."Violation_id_seq" OWNED BY public."Violation".id;
+
+
+--
 -- Name: _prisma_migrations; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -565,13 +562,6 @@ ALTER TABLE ONLY public."News" ALTER COLUMN id SET DEFAULT nextval('public."News
 
 
 --
--- Name: Project id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public."Project" ALTER COLUMN id SET DEFAULT nextval('public."Project_id_seq"'::regclass);
-
-
---
 -- Name: Role id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -604,6 +594,13 @@ ALTER TABLE ONLY public."User" ALTER COLUMN id SET DEFAULT nextval('public."User
 --
 
 ALTER TABLE ONLY public."Vacancy" ALTER COLUMN id SET DEFAULT nextval('public."Vacancy_id_seq"'::regclass);
+
+
+--
+-- Name: Violation id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."Violation" ALTER COLUMN id SET DEFAULT nextval('public."Violation_id_seq"'::regclass);
 
 
 --
@@ -673,14 +670,6 @@ COPY public."News" (id, title, body, "imageUrl", "createdAt", "userId") FROM std
 
 
 --
--- Data for Name: Project; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public."Project" (id, title, description, status, "startDate", "endDate", "imageUrl", "createdAt", "userId") FROM stdin;
-\.
-
-
---
 -- Data for Name: Role; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -739,7 +728,7 @@ COPY public."TowTruckResponse" (id, "fullName", "phoneNumber", email, "carType",
 --
 
 COPY public."User" (id, login, password, "roleId", "createdAt", "updatedAt", "refreshToken") FROM stdin;
-1	admin	$2b$10$a7aUXiPb1S/dEt6Wz5BpWe8DR/3nPy7COwsqKOjoW78oh3W0c/DzO	2	2025-09-25 05:15:37.772	2025-09-26 08:38:56.993	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImxvZ2luIjoiYWRtaW4iLCJpYXQiOjE3NTg4NzU5MzYsImV4cCI6MTc1OTQ4MDczNn0.ihFaW7g3fAikCsJjH5NTHilAJ57kY26FnZhDqbXuUvc
+1	admin	$2b$10$a7aUXiPb1S/dEt6Wz5BpWe8DR/3nPy7COwsqKOjoW78oh3W0c/DzO	2	2025-09-25 05:15:37.772	2025-09-27 16:40:09.026	$2b$10$v7TItVFdhY65ntnBVHXZkO/R2altoUHrgLEtTtFgYg.RljQIJ4Pwa
 \.
 
 
@@ -749,6 +738,14 @@ COPY public."User" (id, login, password, "roleId", "createdAt", "updatedAt", "re
 
 COPY public."Vacancy" (id, title, description, "userId", address, experience, salary) FROM stdin;
 1	Менеджер	Работа с покупателями, консультирование, продажа. Работа с кассой, и многое другое	\N	г. Смоленск, ул. Советская	Не требуется	55000
+\.
+
+
+--
+-- Data for Name: Violation; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public."Violation" (id, type, address, "userId", "createdAt", date) FROM stdin;
 \.
 
 
@@ -803,13 +800,6 @@ SELECT pg_catalog.setval('public."News_id_seq"', 3, true);
 
 
 --
--- Name: Project_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public."Project_id_seq"', 1, false);
-
-
---
 -- Name: Role_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -842,6 +832,13 @@ SELECT pg_catalog.setval('public."User_id_seq"', 1, true);
 --
 
 SELECT pg_catalog.setval('public."Vacancy_id_seq"', 1, true);
+
+
+--
+-- Name: Violation_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public."Violation_id_seq"', 1, false);
 
 
 --
@@ -893,14 +890,6 @@ ALTER TABLE ONLY public."News"
 
 
 --
--- Name: Project Project_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public."Project"
-    ADD CONSTRAINT "Project_pkey" PRIMARY KEY (id);
-
-
---
 -- Name: Role Role_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -938,6 +927,14 @@ ALTER TABLE ONLY public."User"
 
 ALTER TABLE ONLY public."Vacancy"
     ADD CONSTRAINT "Vacancy_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: Violation Violation_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."Violation"
+    ADD CONSTRAINT "Violation_pkey" PRIMARY KEY (id);
 
 
 --
@@ -994,14 +991,6 @@ ALTER TABLE ONLY public."News"
 
 
 --
--- Name: Project Project_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public."Project"
-    ADD CONSTRAINT "Project_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE SET NULL;
-
-
---
 -- Name: User User_roleId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1015,6 +1004,14 @@ ALTER TABLE ONLY public."User"
 
 ALTER TABLE ONLY public."Vacancy"
     ADD CONSTRAINT "Vacancy_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: Violation Violation_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."Violation"
+    ADD CONSTRAINT "Violation_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
 
 --

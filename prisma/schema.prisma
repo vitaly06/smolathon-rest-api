@@ -31,7 +31,7 @@ model User {
   news      News[] // Связь с создаваемыми новостями
   documents Document[] // Связь с создаваемыми документами
   vacancies Vacancy[] // Связь с создаваемыми вакансиями
-  projects  Project[] // Связь с создаваемыми проектами
+  violations Violation[]
 }
 
 // Диаграмма со статистикой
@@ -123,19 +123,14 @@ model Category{
 
   Document Document[]
 }
-
-
-
-model Project {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String
-  status      String 
-  startDate   DateTime
-  endDate     DateTime?
-  imageUrl    String?
-  createdAt   DateTime @default(now())
-  userId      Int? 
-  user        User?    @relation(fields: [userId], references: [id])
+// Нарушения
+model Violation{
+  id Int @id @default(autoincrement())
+  type String
+  date DateTime
+  address String
+  userId Int?
+  user User? @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
 }
 

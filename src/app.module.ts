@@ -13,6 +13,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { DocumentModule } from './document/document.module';
 import { CategoryModule } from './category/category.module';
+import { ViolationModule } from './violation/violation.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { CategoryModule } from './category/category.module';
     FastServiceModule,
     DocumentModule,
     CategoryModule,
+    ViolationModule,
   ],
 })
 export class AppModule {}

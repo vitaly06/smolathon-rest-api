@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UploadFileDto } from './dto/upload-file.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class DocumentService {
