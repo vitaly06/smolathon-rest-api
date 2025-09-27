@@ -40,7 +40,6 @@ export class AuthService {
     const tokens = await this.getTokens(user.id, user.login);
     await this.updateRefreshToken(user.id, tokens.refreshToken);
 
-    // Убираем пароль и refreshToken из ответа
     const { password: _, refreshToken: __, ...userWithoutSensitiveData } = user;
 
     return { tokens, user: userWithoutSensitiveData };
@@ -55,12 +54,16 @@ export class AuthService {
     });
 
     if (!user || !user.refreshToken) {
-      throw new ForbiddenException('Доступ запрещён');
+      throw new ForbiddenException('Доступ запрещён: пользователь не найден');
     }
 
-    // Проверяем соответствие токена
-    if (refreshToken !== user.refreshToken) {
-      throw new ForbiddenException('Доступ запрещён');
+    const isRefreshTokenValid = await bcrypt.compare(
+      refreshToken,
+      user.refreshToken,
+    );
+
+    if (!isRefreshTokenValid) {
+      throw new ForbiddenException('Доступ запрещён: неверный refresh token');
     }
 
     const tokens = await this.getTokens(user.id, user.login);
@@ -70,9 +73,10 @@ export class AuthService {
   }
 
   private async updateRefreshToken(userId: number, refreshToken: string) {
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
     await this.prisma.user.update({
       where: { id: userId },
-      data: { refreshToken },
+      data: { refreshToken: hashedRefreshToken },
     });
   }
 
@@ -100,5 +104,20 @@ export class AuthService {
     ]);
 
     return { accessToken, refreshToken };
+  }
+
+  async logout(userId: number): Promise<void> {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { refreshToken: null }, // Очищаем refresh token
+    });
+  }
+
+  decodeToken(token: string): any {
+    try {
+      return this.jwtService.decode(token);
+    } catch {
+      return null;
+    }
   }
 }

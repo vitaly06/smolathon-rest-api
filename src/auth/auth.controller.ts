@@ -1,5 +1,12 @@
-// auth/auth.controller.ts
-import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+  ForbiddenException,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignInDto } from './dto/sign-in.dto';
 import { SignInResponseDto } from './dto/sign-in-response.dto';
@@ -16,7 +23,6 @@ import {
   ApiForbiddenResponse,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt.guard';
-import * as requestWithUserDto from './interfaces/request-with-user.dto';
 import express from 'express';
 
 @ApiTags('Authentication')
@@ -34,35 +40,12 @@ export class AuthController {
     status: 200,
     description: 'Успешная авторизация',
     type: SignInResponseDto,
-    headers: {
-      'Set-Cookie': {
-        description: 'JWT токены устанавливаются в HTTP-only cookies',
-        schema: {
-          type: 'string',
-          example: 'access_token=eyJhbGci...; HttpOnly; Path=/; Max-Age=7200',
-        },
-      },
-    },
   })
   @ApiNotFoundResponse({
-    description: 'Пользователь не найден или неверный пароль',
-    schema: {
-      example: {
-        statusCode: 404,
-        message: 'Такой пользователь не найден',
-        error: 'Not Found',
-      },
-    },
+    description: 'Пользователь не найден',
   })
   @ApiUnauthorizedResponse({
-    description: 'Неверные учетные данные',
-    schema: {
-      example: {
-        statusCode: 401,
-        message: 'Неверный пароль',
-        error: 'Unauthorized',
-      },
-    },
+    description: 'Неверный пароль',
   })
   async signIn(
     @Body() dto: SignInDto,
@@ -75,58 +58,47 @@ export class AuthController {
   }
 
   @Post('refresh')
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'Обновление токенов',
-    description:
-      'Обновление access и refresh токенов с использованием текущего refresh token',
+    description: 'Обновление access и refresh токенов',
   })
-  @ApiBearerAuth()
-  @ApiCookieAuth('refresh_token')
   @ApiResponse({
     status: 200,
     description: 'Токены успешно обновлены',
     type: RefreshResponseDto,
-    headers: {
-      'Set-Cookie': {
-        description: 'Новые JWT токены устанавливаются в HTTP-only cookies',
-        schema: {
-          type: 'string',
-          example: 'access_token=eyJhbGci...; HttpOnly; Path=/; Max-Age=7200',
-        },
-      },
-    },
-  })
-  @ApiUnauthorizedResponse({
-    description: 'Пользователь не авторизован',
-    schema: {
-      example: {
-        statusCode: 401,
-        message: 'Unauthorized',
-      },
-    },
   })
   @ApiForbiddenResponse({
     description: 'Неверный или просроченный refresh token',
-    schema: {
-      example: {
-        statusCode: 403,
-        message: 'Доступ запрещён',
-        error: 'Forbidden',
-      },
-    },
   })
   async refresh(
+    @Req() req: express.Request,
     @Res({ passthrough: true }) res: express.Response,
-    @Req() req: requestWithUserDto.RequestWithUserRefresh,
   ): Promise<RefreshResponseDto> {
-    const tokens = await this.authService.refreshToken(
-      req.user.sub,
-      req.user.refreshToken,
-    );
+    const refreshToken = req.cookies?.refresh_token;
 
-    this.setCookies(res, tokens);
-    return { message: 'Токены успешно обновлены' };
+    if (!refreshToken) {
+      throw new ForbiddenException('Refresh token не найден');
+    }
+
+    try {
+      const decoded = this.authService.decodeToken(refreshToken);
+      if (!decoded || !decoded.sub) {
+        throw new ForbiddenException('Неверный refresh token');
+      }
+
+      const tokens = await this.authService.refreshToken(
+        decoded.sub,
+        refreshToken,
+      );
+      this.setCookies(res, tokens);
+
+      return { message: 'Токены успешно обновлены' };
+    } catch (error) {
+      if (error instanceof ForbiddenException) {
+        throw error;
+      }
+      throw new ForbiddenException('Ошибка при обновлении токенов');
+    }
   }
 
   @Post('logout')
@@ -139,23 +111,16 @@ export class AuthController {
   @ApiResponse({
     status: 200,
     description: 'Успешный выход из системы',
-    schema: {
-      example: {
-        message: 'Вы успешно вышли из системы',
-      },
-    },
-    headers: {
-      'Set-Cookie': {
-        description: 'Cookies очищаются',
-        schema: {
-          type: 'string',
-          example:
-            'access_token=; HttpOnly; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT',
-        },
-      },
-    },
   })
-  async logout(@Res({ passthrough: true }) res: express.Response) {
+  async logout(
+    @Req() req: any,
+    @Res({ passthrough: true }) res: express.Response,
+  ) {
+    // Очищаем refresh token в базе данных
+    if (req.user?.sub) {
+      await this.authService.logout(req.user.sub);
+    }
+
     this.clearCookies(res);
     return { message: 'Вы успешно вышли из системы' };
   }
