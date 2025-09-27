@@ -13,6 +13,12 @@ model Role {
   users User[]
 }
 
+enum ResponseStatus {
+  NOT_RESOLVED
+  PROCCESS
+  SOLVED
+}
+
 model User {
   id        Int      @id @default(autoincrement())
   login     String   @unique
@@ -68,6 +74,7 @@ model JobResponse{
   fullName String
   phoneNumber String
   email String
+  status ResponseStatus @default(NOT_RESOLVED)
 }
 
 // Вызовы эвакуатора
@@ -78,6 +85,7 @@ model TowTruckResponse{
   email String
   carType String
   address String
+  status ResponseStatus @default(NOT_RESOLVED)
 } 
 // Заявка на разработку документов
 model DocumentationDevelopmentResponse{
@@ -85,6 +93,7 @@ model DocumentationDevelopmentResponse{
   fullName String
   phoneNumber String
   email String
+  status ResponseStatus @default(NOT_RESOLVED)
 }
 // Заявка на аренду автовышки
 model BoomLiftRentalResponse{
@@ -92,6 +101,7 @@ model BoomLiftRentalResponse{
   fullName String
   phoneNumber String
   email String
+  status ResponseStatus @default(NOT_RESOLVED)
 }
 
 // Документы
