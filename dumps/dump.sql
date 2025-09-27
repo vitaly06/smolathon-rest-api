@@ -38,48 +38,6 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- Name: AccidentStatistic; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public."AccidentStatistic" (
-    id integer NOT NULL,
-    date timestamp(3) without time zone NOT NULL,
-    "incidentsCount" integer NOT NULL,
-    "injuredCount" integer NOT NULL,
-    "fatalitiesCount" integer NOT NULL,
-    location text,
-    period text NOT NULL,
-    "isPublic" boolean DEFAULT true NOT NULL,
-    "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    "userId" integer
-);
-
-
-ALTER TABLE public."AccidentStatistic" OWNER TO postgres;
-
---
--- Name: AccidentStatistic_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public."AccidentStatistic_id_seq"
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public."AccidentStatistic_id_seq" OWNER TO postgres;
-
---
--- Name: AccidentStatistic_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public."AccidentStatistic_id_seq" OWNED BY public."AccidentStatistic".id;
-
-
---
 -- Name: BoomLiftRentalResponse; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -116,6 +74,40 @@ ALTER SEQUENCE public."BoomLiftRentalResponse_id_seq" OWNED BY public."BoomLiftR
 
 
 --
+-- Name: Category; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."Category" (
+    id integer NOT NULL,
+    name text NOT NULL
+);
+
+
+ALTER TABLE public."Category" OWNER TO postgres;
+
+--
+-- Name: Category_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public."Category_id_seq"
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public."Category_id_seq" OWNER TO postgres;
+
+--
+-- Name: Category_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public."Category_id_seq" OWNED BY public."Category".id;
+
+
+--
 -- Name: Document; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -125,7 +117,8 @@ CREATE TABLE public."Document" (
     "fileUrl" text NOT NULL,
     description text NOT NULL,
     "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    "userId" integer
+    "userId" integer,
+    "categoryId" integer NOT NULL
 );
 
 
@@ -187,128 +180,6 @@ ALTER SEQUENCE public."DocumentationDevelopmentResponse_id_seq" OWNER TO postgre
 --
 
 ALTER SEQUENCE public."DocumentationDevelopmentResponse_id_seq" OWNED BY public."DocumentationDevelopmentResponse".id;
-
-
---
--- Name: EvacuationStatistic; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public."EvacuationStatistic" (
-    id integer NOT NULL,
-    date timestamp(3) without time zone NOT NULL,
-    "evacuatorsCount" integer NOT NULL,
-    "tripsCount" integer NOT NULL,
-    "evacuationsCount" integer NOT NULL,
-    "parkingLotRevenues" double precision NOT NULL,
-    period text NOT NULL,
-    "isPublic" boolean DEFAULT false NOT NULL,
-    "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    "userId" integer
-);
-
-
-ALTER TABLE public."EvacuationStatistic" OWNER TO postgres;
-
---
--- Name: EvacuationStatistic_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public."EvacuationStatistic_id_seq"
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public."EvacuationStatistic_id_seq" OWNER TO postgres;
-
---
--- Name: EvacuationStatistic_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public."EvacuationStatistic_id_seq" OWNED BY public."EvacuationStatistic".id;
-
-
---
--- Name: EvacuatorRoute; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public."EvacuatorRoute" (
-    id integer NOT NULL,
-    "routeName" text NOT NULL,
-    description text NOT NULL,
-    waypoints text NOT NULL,
-    "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    "userId" integer
-);
-
-
-ALTER TABLE public."EvacuatorRoute" OWNER TO postgres;
-
---
--- Name: EvacuatorRoute_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public."EvacuatorRoute_id_seq"
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public."EvacuatorRoute_id_seq" OWNER TO postgres;
-
---
--- Name: EvacuatorRoute_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public."EvacuatorRoute_id_seq" OWNED BY public."EvacuatorRoute".id;
-
-
---
--- Name: FineStatistic; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public."FineStatistic" (
-    id integer NOT NULL,
-    date timestamp(3) without time zone NOT NULL,
-    "violationsCount" integer NOT NULL,
-    "decreesCount" integer NOT NULL,
-    "imposedFines" double precision NOT NULL,
-    "collectedFines" double precision NOT NULL,
-    period text NOT NULL,
-    "isPublic" boolean DEFAULT false NOT NULL,
-    "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    "userId" integer
-);
-
-
-ALTER TABLE public."FineStatistic" OWNER TO postgres;
-
---
--- Name: FineStatistic_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public."FineStatistic_id_seq"
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public."FineStatistic_id_seq" OWNER TO postgres;
-
---
--- Name: FineStatistic_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public."FineStatistic_id_seq" OWNED BY public."FineStatistic".id;
 
 
 --
@@ -461,45 +332,6 @@ ALTER SEQUENCE public."Role_id_seq" OWNED BY public."Role".id;
 
 
 --
--- Name: Service; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public."Service" (
-    id integer NOT NULL,
-    name text NOT NULL,
-    description text NOT NULL,
-    cost double precision NOT NULL,
-    "orderFormDetails" text NOT NULL,
-    "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    "userId" integer
-);
-
-
-ALTER TABLE public."Service" OWNER TO postgres;
-
---
--- Name: Service_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public."Service_id_seq"
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public."Service_id_seq" OWNER TO postgres;
-
---
--- Name: Service_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public."Service_id_seq" OWNED BY public."Service".id;
-
-
---
 -- Name: Statistics; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -540,45 +372,6 @@ ALTER SEQUENCE public."Statistics_id_seq" OWNED BY public."Statistics".id;
 
 
 --
--- Name: TeamMember; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public."TeamMember" (
-    id integer NOT NULL,
-    name text NOT NULL,
-    "position" text NOT NULL,
-    bio text NOT NULL,
-    "photoUrl" text NOT NULL,
-    "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    "userId" integer
-);
-
-
-ALTER TABLE public."TeamMember" OWNER TO postgres;
-
---
--- Name: TeamMember_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public."TeamMember_id_seq"
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public."TeamMember_id_seq" OWNER TO postgres;
-
---
--- Name: TeamMember_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public."TeamMember_id_seq" OWNED BY public."TeamMember".id;
-
-
---
 -- Name: TowTruckResponse; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -614,48 +407,6 @@ ALTER SEQUENCE public."TowTruckResponse_id_seq" OWNER TO postgres;
 --
 
 ALTER SEQUENCE public."TowTruckResponse_id_seq" OWNED BY public."TowTruckResponse".id;
-
-
---
--- Name: TrafficLight; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public."TrafficLight" (
-    id integer NOT NULL,
-    address text NOT NULL,
-    type text NOT NULL,
-    "installationDate" timestamp(3) without time zone NOT NULL,
-    status text NOT NULL,
-    latitude double precision NOT NULL,
-    longitude double precision NOT NULL,
-    "isPublic" boolean DEFAULT true NOT NULL,
-    "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    "userId" integer
-);
-
-
-ALTER TABLE public."TrafficLight" OWNER TO postgres;
-
---
--- Name: TrafficLight_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public."TrafficLight_id_seq"
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public."TrafficLight_id_seq" OWNER TO postgres;
-
---
--- Name: TrafficLight_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public."TrafficLight_id_seq" OWNED BY public."TrafficLight".id;
 
 
 --
@@ -755,17 +506,17 @@ CREATE TABLE public._prisma_migrations (
 ALTER TABLE public._prisma_migrations OWNER TO postgres;
 
 --
--- Name: AccidentStatistic id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public."AccidentStatistic" ALTER COLUMN id SET DEFAULT nextval('public."AccidentStatistic_id_seq"'::regclass);
-
-
---
 -- Name: BoomLiftRentalResponse id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public."BoomLiftRentalResponse" ALTER COLUMN id SET DEFAULT nextval('public."BoomLiftRentalResponse_id_seq"'::regclass);
+
+
+--
+-- Name: Category id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."Category" ALTER COLUMN id SET DEFAULT nextval('public."Category_id_seq"'::regclass);
 
 
 --
@@ -780,27 +531,6 @@ ALTER TABLE ONLY public."Document" ALTER COLUMN id SET DEFAULT nextval('public."
 --
 
 ALTER TABLE ONLY public."DocumentationDevelopmentResponse" ALTER COLUMN id SET DEFAULT nextval('public."DocumentationDevelopmentResponse_id_seq"'::regclass);
-
-
---
--- Name: EvacuationStatistic id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public."EvacuationStatistic" ALTER COLUMN id SET DEFAULT nextval('public."EvacuationStatistic_id_seq"'::regclass);
-
-
---
--- Name: EvacuatorRoute id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public."EvacuatorRoute" ALTER COLUMN id SET DEFAULT nextval('public."EvacuatorRoute_id_seq"'::regclass);
-
-
---
--- Name: FineStatistic id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public."FineStatistic" ALTER COLUMN id SET DEFAULT nextval('public."FineStatistic_id_seq"'::regclass);
 
 
 --
@@ -832,13 +562,6 @@ ALTER TABLE ONLY public."Role" ALTER COLUMN id SET DEFAULT nextval('public."Role
 
 
 --
--- Name: Service id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public."Service" ALTER COLUMN id SET DEFAULT nextval('public."Service_id_seq"'::regclass);
-
-
---
 -- Name: Statistics id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -846,24 +569,10 @@ ALTER TABLE ONLY public."Statistics" ALTER COLUMN id SET DEFAULT nextval('public
 
 
 --
--- Name: TeamMember id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public."TeamMember" ALTER COLUMN id SET DEFAULT nextval('public."TeamMember_id_seq"'::regclass);
-
-
---
 -- Name: TowTruckResponse id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public."TowTruckResponse" ALTER COLUMN id SET DEFAULT nextval('public."TowTruckResponse_id_seq"'::regclass);
-
-
---
--- Name: TrafficLight id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public."TrafficLight" ALTER COLUMN id SET DEFAULT nextval('public."TrafficLight_id_seq"'::regclass);
 
 
 --
@@ -881,14 +590,6 @@ ALTER TABLE ONLY public."Vacancy" ALTER COLUMN id SET DEFAULT nextval('public."V
 
 
 --
--- Data for Name: AccidentStatistic; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public."AccidentStatistic" (id, date, "incidentsCount", "injuredCount", "fatalitiesCount", location, period, "isPublic", "createdAt", "userId") FROM stdin;
-\.
-
-
---
 -- Data for Name: BoomLiftRentalResponse; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -897,10 +598,24 @@ COPY public."BoomLiftRentalResponse" (id, "fullName", "phoneNumber", email) FROM
 
 
 --
+-- Data for Name: Category; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public."Category" (id, name) FROM stdin;
+1	Работа ЦОДД
+2	О специальной оценке труда
+3	Постановление Правительства
+\.
+
+
+--
 -- Data for Name: Document; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public."Document" (id, title, "fileUrl", description, "createdAt", "userId") FROM stdin;
+COPY public."Document" (id, title, "fileUrl", description, "createdAt", "userId", "categoryId") FROM stdin;
+1	Устав учреждения	uploads/documents/1758966126309-571717866.docx	Какие цели выполняем и как работаем	2025-09-27 09:42:06.367	\N	1
+2	Политика конфидицеальности	uploads/documents/1758967828275-876995660.docx	основные положения	2025-09-27 10:10:28.32	\N	2
+3	Годовой план	uploads/documents/1758967866237-207515907.docx	Годовой план по улучшению работы	2025-09-27 10:11:06.249	\N	3
 \.
 
 
@@ -909,30 +624,6 @@ COPY public."Document" (id, title, "fileUrl", description, "createdAt", "userId"
 --
 
 COPY public."DocumentationDevelopmentResponse" (id, "fullName", "phoneNumber", email) FROM stdin;
-\.
-
-
---
--- Data for Name: EvacuationStatistic; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public."EvacuationStatistic" (id, date, "evacuatorsCount", "tripsCount", "evacuationsCount", "parkingLotRevenues", period, "isPublic", "createdAt", "userId") FROM stdin;
-\.
-
-
---
--- Data for Name: EvacuatorRoute; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public."EvacuatorRoute" (id, "routeName", description, waypoints, "createdAt", "userId") FROM stdin;
-\.
-
-
---
--- Data for Name: FineStatistic; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public."FineStatistic" (id, date, "violationsCount", "decreesCount", "imposedFines", "collectedFines", period, "isPublic", "createdAt", "userId") FROM stdin;
 \.
 
 
@@ -979,14 +670,6 @@ COPY public."Role" (id, name) FROM stdin;
 
 
 --
--- Data for Name: Service; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public."Service" (id, name, description, cost, "orderFormDetails", "createdAt", "userId") FROM stdin;
-\.
-
-
---
 -- Data for Name: Statistics; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -999,14 +682,24 @@ COPY public."Statistics" (id, subject, "pointFpsr", "indicatorName", "indicatorV
 6	14. Смоленская область	3_1	Количество лиц, погибших в результате ДТП	20	20	январь-апрель 2024 г.	2025-09-26 10:34:50.658
 7	14. Смоленская область	3_1	Количество лиц, получивших ранения в результате совершения ДТП	229	229	январь-апрель 2024 г.	2025-09-26 10:34:50.663
 8	14. Смоленская область	3_1	Число погибших на 100 пострадавших	8.032128514	8,032128514	январь-апрель 2024 г.	2025-09-26 10:34:50.665
-\.
-
-
---
--- Data for Name: TeamMember; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public."TeamMember" (id, name, "position", bio, "photoUrl", "createdAt", "userId") FROM stdin;
+9	14. Смоленская область	3_1	Количество ДТП с пострадавшими	127	127	январь-март 2024 г.	2025-09-27 09:47:22.278
+10	14. Смоленская область	3_1	Количество лиц, погибших в результате ДТП	12	12	январь-март 2024 г.	2025-09-27 09:47:22.278
+11	14. Смоленская область	3_1	Количество лиц, получивших ранения в результате совершения ДТП	159	159	январь-март 2024 г.	2025-09-27 09:47:22.278
+12	14. Смоленская область	3_1	Число погибших на 100 пострадавших	7.01754386	7,01754386	январь-март 2024 г.	2025-09-27 09:47:22.278
+13	14. Смоленская область	3_1	Количество ДТП с пострадавшими	743	743	январь-ноябрь 2024 года	2025-09-27 09:47:40.333
+14	14. Смоленская область	3_1	Количество лиц, погибших в результате ДТП	103	103	январь-ноябрь 2024 года	2025-09-27 09:47:40.333
+15	14. Смоленская область	3_1	Количество лиц, получивших ранения в результате совершения ДТП	922	922	январь-ноябрь 2024 года	2025-09-27 09:47:40.333
+16	14. Смоленская область	3_1	Число погибших на 100 пострадавших	10.04878049	10.04878049	январь-ноябрь 2024 года	2025-09-27 09:47:40.333
+17	Смоленская область	3_1	Количество ДТП с пострадавшими	939	939	январь - декабрь 2023 г.	2025-09-27 09:47:59.826
+18	Смоленская область	3_1	Количество лиц, погибших в результате ДТП	108	108	январь - декабрь 2023 г.	2025-09-27 09:47:59.826
+19	Смоленская область	3_1	Количество лиц, получивших ранения в результате совершения ДТП	1138	1138	январь - декабрь 2023 г.	2025-09-27 09:47:59.826
+20	Смоленская область	3_1	Число погибших на 100 пострадавших	8.67	8,67	январь - декабрь 2023 г.	2025-09-27 09:47:59.826
+21	Смоленская область	3_1	Смертность населения в ДТП в расчете на 100 тыс. человек населения	12.37	12,37	январь - декабрь 2023 г.	2025-09-27 09:47:59.826
+22	Смоленская область	3_1	Число погибших на 10 тыс. транспортных средств	3.55	3,55	январь - декабрь 2023 г.	2025-09-27 09:47:59.826
+23	14. Смоленская область	3_1	Количество ДТП с пострадавшими	341	341	январь-июнь 2024 г.	2025-09-27 09:50:21.027
+24	14. Смоленская область	3_1	Количество лиц, погибших в результате ДТП	38	38	январь-июнь 2024 г.	2025-09-27 09:50:21.027
+25	14. Смоленская область	3_1	Количество лиц, получивших ранения в результате совершения ДТП	420	420	январь-июнь 2024 г.	2025-09-27 09:50:21.027
+26	14. Смоленская область	3_1	Число погибших на 100 пострадавших	8.296943231	8,296943231	январь-июнь 2024 г.	2025-09-27 09:50:21.027
 \.
 
 
@@ -1015,14 +708,6 @@ COPY public."TeamMember" (id, name, "position", bio, "photoUrl", "createdAt", "u
 --
 
 COPY public."TowTruckResponse" (id, "fullName", "phoneNumber", email, "carType", address) FROM stdin;
-\.
-
-
---
--- Data for Name: TrafficLight; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public."TrafficLight" (id, address, type, "installationDate", status, latitude, longitude, "isPublic", "createdAt", "userId") FROM stdin;
 \.
 
 
@@ -1053,13 +738,6 @@ COPY public._prisma_migrations (id, checksum, finished_at, migration_name, logs,
 
 
 --
--- Name: AccidentStatistic_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public."AccidentStatistic_id_seq"', 1, false);
-
-
---
 -- Name: BoomLiftRentalResponse_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -1067,10 +745,17 @@ SELECT pg_catalog.setval('public."BoomLiftRentalResponse_id_seq"', 1, false);
 
 
 --
+-- Name: Category_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public."Category_id_seq"', 3, true);
+
+
+--
 -- Name: Document_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."Document_id_seq"', 1, false);
+SELECT pg_catalog.setval('public."Document_id_seq"', 3, true);
 
 
 --
@@ -1078,27 +763,6 @@ SELECT pg_catalog.setval('public."Document_id_seq"', 1, false);
 --
 
 SELECT pg_catalog.setval('public."DocumentationDevelopmentResponse_id_seq"', 1, false);
-
-
---
--- Name: EvacuationStatistic_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public."EvacuationStatistic_id_seq"', 1, false);
-
-
---
--- Name: EvacuatorRoute_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public."EvacuatorRoute_id_seq"', 1, false);
-
-
---
--- Name: FineStatistic_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public."FineStatistic_id_seq"', 1, false);
 
 
 --
@@ -1130,24 +794,10 @@ SELECT pg_catalog.setval('public."Role_id_seq"', 2, true);
 
 
 --
--- Name: Service_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public."Service_id_seq"', 1, false);
-
-
---
 -- Name: Statistics_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."Statistics_id_seq"', 8, true);
-
-
---
--- Name: TeamMember_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public."TeamMember_id_seq"', 1, false);
+SELECT pg_catalog.setval('public."Statistics_id_seq"', 26, true);
 
 
 --
@@ -1155,13 +805,6 @@ SELECT pg_catalog.setval('public."TeamMember_id_seq"', 1, false);
 --
 
 SELECT pg_catalog.setval('public."TowTruckResponse_id_seq"', 1, false);
-
-
---
--- Name: TrafficLight_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public."TrafficLight_id_seq"', 1, false);
 
 
 --
@@ -1179,19 +822,19 @@ SELECT pg_catalog.setval('public."Vacancy_id_seq"', 1, true);
 
 
 --
--- Name: AccidentStatistic AccidentStatistic_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public."AccidentStatistic"
-    ADD CONSTRAINT "AccidentStatistic_pkey" PRIMARY KEY (id);
-
-
---
 -- Name: BoomLiftRentalResponse BoomLiftRentalResponse_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public."BoomLiftRentalResponse"
     ADD CONSTRAINT "BoomLiftRentalResponse_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: Category Category_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."Category"
+    ADD CONSTRAINT "Category_pkey" PRIMARY KEY (id);
 
 
 --
@@ -1208,30 +851,6 @@ ALTER TABLE ONLY public."Document"
 
 ALTER TABLE ONLY public."DocumentationDevelopmentResponse"
     ADD CONSTRAINT "DocumentationDevelopmentResponse_pkey" PRIMARY KEY (id);
-
-
---
--- Name: EvacuationStatistic EvacuationStatistic_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public."EvacuationStatistic"
-    ADD CONSTRAINT "EvacuationStatistic_pkey" PRIMARY KEY (id);
-
-
---
--- Name: EvacuatorRoute EvacuatorRoute_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public."EvacuatorRoute"
-    ADD CONSTRAINT "EvacuatorRoute_pkey" PRIMARY KEY (id);
-
-
---
--- Name: FineStatistic FineStatistic_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public."FineStatistic"
-    ADD CONSTRAINT "FineStatistic_pkey" PRIMARY KEY (id);
 
 
 --
@@ -1267,14 +886,6 @@ ALTER TABLE ONLY public."Role"
 
 
 --
--- Name: Service Service_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public."Service"
-    ADD CONSTRAINT "Service_pkey" PRIMARY KEY (id);
-
-
---
 -- Name: Statistics Statistics_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1283,27 +894,11 @@ ALTER TABLE ONLY public."Statistics"
 
 
 --
--- Name: TeamMember TeamMember_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public."TeamMember"
-    ADD CONSTRAINT "TeamMember_pkey" PRIMARY KEY (id);
-
-
---
 -- Name: TowTruckResponse TowTruckResponse_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public."TowTruckResponse"
     ADD CONSTRAINT "TowTruckResponse_pkey" PRIMARY KEY (id);
-
-
---
--- Name: TrafficLight TrafficLight_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public."TrafficLight"
-    ADD CONSTRAINT "TrafficLight_pkey" PRIMARY KEY (id);
 
 
 --
@@ -1331,6 +926,13 @@ ALTER TABLE ONLY public._prisma_migrations
 
 
 --
+-- Name: Category_name_key; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE UNIQUE INDEX "Category_name_key" ON public."Category" USING btree (name);
+
+
+--
 -- Name: Role_name_key; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1345,11 +947,11 @@ CREATE UNIQUE INDEX "User_login_key" ON public."User" USING btree (login);
 
 
 --
--- Name: AccidentStatistic AccidentStatistic_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: Document Document_categoryId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public."AccidentStatistic"
-    ADD CONSTRAINT "AccidentStatistic_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE SET NULL;
+ALTER TABLE ONLY public."Document"
+    ADD CONSTRAINT "Document_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES public."Category"(id) ON UPDATE CASCADE ON DELETE RESTRICT;
 
 
 --
@@ -1358,30 +960,6 @@ ALTER TABLE ONLY public."AccidentStatistic"
 
 ALTER TABLE ONLY public."Document"
     ADD CONSTRAINT "Document_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE SET NULL;
-
-
---
--- Name: EvacuationStatistic EvacuationStatistic_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public."EvacuationStatistic"
-    ADD CONSTRAINT "EvacuationStatistic_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE SET NULL;
-
-
---
--- Name: EvacuatorRoute EvacuatorRoute_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public."EvacuatorRoute"
-    ADD CONSTRAINT "EvacuatorRoute_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE SET NULL;
-
-
---
--- Name: FineStatistic FineStatistic_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public."FineStatistic"
-    ADD CONSTRAINT "FineStatistic_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
 
 --
@@ -1398,30 +976,6 @@ ALTER TABLE ONLY public."News"
 
 ALTER TABLE ONLY public."Project"
     ADD CONSTRAINT "Project_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE SET NULL;
-
-
---
--- Name: Service Service_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public."Service"
-    ADD CONSTRAINT "Service_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE SET NULL;
-
-
---
--- Name: TeamMember TeamMember_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public."TeamMember"
-    ADD CONSTRAINT "TeamMember_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE SET NULL;
-
-
---
--- Name: TrafficLight TrafficLight_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public."TrafficLight"
-    ADD CONSTRAINT "TrafficLight_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
 
 --

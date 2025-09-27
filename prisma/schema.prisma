@@ -26,13 +26,6 @@ model User {
   documents Document[] // Связь с создаваемыми документами
   vacancies Vacancy[] // Связь с создаваемыми вакансиями
   projects  Project[] // Связь с создаваемыми проектами
-  services  Service[] // Связь с создаваемыми услугами
-  teamMembers TeamMember[] // Связь с создаваемыми членами команды
-  fineStatistics FineStatistic[] // Связь с управляемой статистикой штрафов
-  evacuationStatistics EvacuationStatistic[] // Связь с управляемой статистикой эвакуаций
-  accidentStatistics AccidentStatistic[] // Связь с управляемой статистикой ДТП
-  trafficLights TrafficLight[] // Связь с управляемыми светофорами
-  evacuatorRoutes EvacuatorRoute[] // Связь с управляемыми маршрутами эвакуаторов
 }
 
 // Диаграмма со статистикой
@@ -101,14 +94,24 @@ model BoomLiftRentalResponse{
   email String
 }
 
+// Документы
 model Document {
   id          Int      @id @default(autoincrement())
   title       String
   fileUrl     String
   description String
+  categoryId Int
+  category Category @relation(fields: [categoryId], references: [id])
   createdAt   DateTime @default(now())
   userId      Int? 
   user        User?    @relation(fields: [userId], references: [id])
+}
+// Категории для документов
+model Category{
+  id Int @id @default(autoincrement())
+  name String @unique
+
+  Document Document[]
 }
 
 
@@ -126,90 +129,3 @@ model Project {
   user        User?    @relation(fields: [userId], references: [id])
 }
 
-model Service {
-  id              Int      @id @default(autoincrement())
-  name            String
-  description     String
-  cost            Float
-  orderFormDetails String 
-  createdAt       DateTime @default(now())
-  userId          Int? 
-  user            User?    @relation(fields: [userId], references: [id])
-}
-
-model TeamMember {
-  id        Int      @id @default(autoincrement())
-  name      String
-  position  String
-  bio       String
-  photoUrl  String
-  createdAt DateTime @default(now())
-  userId    Int? // Опционально
-  user      User?    @relation(fields: [userId], references: [id])
-}
-
-model FineStatistic {
-  id              Int      @id @default(autoincrement())
-  date            DateTime
-  violationsCount Int
-  decreesCount    Int
-  imposedFines    Float
-  collectedFines  Float
-  period          String // Например, monthly, yearly
-  isPublic        Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  userId          Int? // Опционально, для управляющего
-  user            User?    @relation(fields: [userId], references: [id])
-}
-
-model EvacuationStatistic {
-  id                 Int      @id @default(autoincrement())
-  date               DateTime
-  evacuatorsCount    Int
-  tripsCount         Int
-  evacuationsCount   Int
-  parkingLotRevenues Float
-  period             String
-  isPublic           Boolean  @default(false)
-  createdAt          DateTime @default(now())
-  userId             Int? // Опционально
-  user               User?    @relation(fields: [userId], references: [id])
-}
-
-model AccidentStatistic {
-  id              Int      @id @default(autoincrement())
-  date            DateTime
-  incidentsCount  Int
-  injuredCount    Int
-  fatalitiesCount Int
-  location        String?
-  period          String
-  isPublic        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  userId          Int? // Опционально
-  user            User?    @relation(fields: [userId], references: [id])
-}
-
-model TrafficLight {
-  id               Int      @id @default(autoincrement())
-  address          String
-  type             String // Например, pedestrian, vehicle
-  installationDate DateTime
-  status           String // Например, active, maintenance
-  latitude         Float // Для отображения на карте
-  longitude        Float // Для отображения на карте
-  isPublic         Boolean  @default(true)
-  createdAt        DateTime @default(now())
-  userId           Int? // Опционально
-  user             User?    @relation(fields: [userId], references: [id])
-}
-
-model EvacuatorRoute {
-  id          Int      @id @default(autoincrement())
-  routeName   String
-  description String
-  waypoints   String // JSON массив точек маршрута
-  createdAt   DateTime @default(now())
-  userId      Int? // Опционально
-  user        User?    @relation(fields: [userId], references: [id])
-}

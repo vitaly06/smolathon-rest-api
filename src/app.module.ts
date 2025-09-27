@@ -11,6 +11,8 @@ import { ConfigModule } from '@nestjs/config';
 import { FastServiceModule } from './fast-service/fast-service.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { DocumentModule } from './document/document.module';
+import { CategoryModule } from './category/category.module';
 
 @Module({
   imports: [
@@ -30,6 +32,8 @@ import { join } from 'path';
     RoleModule,
     TelegramBotModule,
     FastServiceModule,
+    DocumentModule,
+    CategoryModule,
   ],
 })
 export class AppModule {}
