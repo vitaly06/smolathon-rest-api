@@ -1,6 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { SmolenskDataResponseDto } from './dto/smolensk-data-response.dto';
+import {
+  SmolenskDataResponseDto,
+  PeriodDataDto,
+  IndicatorDto,
+} from './dto/smolensk-data-response.dto';
 
 @Injectable()
 export class StatisticService {
@@ -42,6 +46,73 @@ export class StatisticService {
         period: { contains: year },
         subject: { contains: 'Смоленская' },
       },
+      orderBy: {
+        period: 'asc',
+      },
+    });
+
+    if (data.length === 0) {
+      throw new NotFoundException('Данные не найдены');
+    }
+
+    // Группируем данные по периодам
+    const dataByPeriod = data.reduce(
+      (acc, item) => {
+        if (!acc[item.period]) {
+          acc[item.period] = [];
+        }
+        acc[item.period].push(item);
+        return acc;
+      },
+      {} as Record<string, typeof data>,
+    );
+
+    // Преобразуем в нужный формат
+    const periodData: PeriodDataDto[] = [];
+
+    for (const periodStr in dataByPeriod) {
+      const indicators: IndicatorDto[] = [];
+
+      dataByPeriod[periodStr].forEach((item) => {
+        let value: number | null = item.indicatorValue;
+
+        // Если числовое значение null, пробуем распарсить из строки
+        if (value === null && item.indicatorValueString) {
+          const parsed = parseFloat(
+            item.indicatorValueString.replace(',', '.'),
+          );
+          value = isNaN(parsed) ? null : parsed;
+        }
+
+        // Используем числовое значение или 0 если не удалось распарсить
+        const finalValue = value ?? 0;
+
+        indicators.push({
+          name: item.indicatorName,
+          value: finalValue,
+        });
+      });
+
+      periodData.push({
+        period: periodStr,
+        indicators: indicators,
+      });
+    }
+
+    return {
+      data: periodData,
+    };
+  }
+
+  // Дополнительный метод для получения всех данных без фильтрации по году
+  async getAllSmolenskData(): Promise<SmolenskDataResponseDto> {
+    const data = await this.prisma.statistics.findMany({
+      where: {
+        subject: { contains: 'Смоленская' },
+      },
+      orderBy: {
+        period: 'asc',
+      },
     });
 
     if (data.length === 0) {
@@ -50,70 +121,46 @@ export class StatisticService {
 
     const dataByPeriod = data.reduce(
       (acc, item) => {
-        if (!acc[item.period]) acc[item.period] = [];
+        if (!acc[item.period]) {
+          acc[item.period] = [];
+        }
         acc[item.period].push(item);
         return acc;
       },
       {} as Record<string, typeof data>,
     );
 
-    const result: SmolenskDataResponseDto = {};
-    const russianMonths = [
-      'январь',
-      'февраль',
-      'март',
-      'апрель',
-      'май',
-      'июнь',
-      'июль',
-      'август',
-      'сентябрь',
-      'октябрь',
-      'ноябрь',
-      'декабрь',
-    ];
+    const periodData: PeriodDataDto[] = [];
 
     for (const periodStr in dataByPeriod) {
-      const match = periodStr.match(/([а-я]+)-([а-я]+) (\d+) г\./);
-      if (!match) continue;
+      const indicators: IndicatorDto[] = [];
 
-      const startMonth = match[1];
-      const endMonth = match[2];
-      const pYear = match[3];
-
-      const startIdx = russianMonths.indexOf(startMonth);
-      const endIdx = russianMonths.indexOf(endMonth);
-
-      if (startIdx === -1 || endIdx === -1 || startIdx > endIdx) continue;
-
-      const numMonths = endIdx - startIdx + 1;
-
-      const indicators: Record<string, number> = {};
       dataByPeriod[periodStr].forEach((item) => {
         let value: number | null = item.indicatorValue;
+
         if (value === null && item.indicatorValueString) {
           const parsed = parseFloat(
             item.indicatorValueString.replace(',', '.'),
           );
           value = isNaN(parsed) ? null : parsed;
         }
+
         const finalValue = value ?? 0;
-        indicators[item.indicatorName] = finalValue / numMonths;
+
+        indicators.push({
+          name: item.indicatorName,
+          value: finalValue,
+        });
       });
 
-      const indicatorArray = Object.entries(indicators).map(
-        ([name, value]) => ({
-          name,
-          value,
-        }),
-      );
-
-      for (let i = startIdx; i <= endIdx; i++) {
-        const monthKey = `${russianMonths[i]} ${pYear}`;
-        result[monthKey] = indicatorArray;
-      }
+      periodData.push({
+        period: periodStr,
+        indicators: indicators,
+      });
     }
 
-    return result;
+    return {
+      data: periodData,
+    };
   }
 }

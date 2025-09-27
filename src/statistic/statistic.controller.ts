@@ -139,58 +139,19 @@ export class StatisticController {
 
   @Get('smolensk')
   @ApiOperation({
-    summary: 'Получение данных по Смоленской области',
-    description:
-      'Возвращает статистические данные по Смоленской области, группированные по месяцам для указанного года',
-  })
-  @ApiQuery({
-    name: 'period',
-    required: false,
-    description: 'Год для фильтрации данных (по умолчанию текущий год)',
-    example: '2024',
-    type: String,
+    summary: 'Получение всех данных по Смоленской области',
+    description: 'Возвращает все статистические данные по Смоленской области',
   })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Успешное получение данных',
     type: SmolenskDataResponseDto,
   })
-  @ApiBadRequestResponse({
-    description: 'Неверный формат периода',
-    schema: {
-      example: {
-        statusCode: 400,
-        message:
-          'Неверный формат периода. Ожидается год, например, 2024 или период с годом.',
-        error: 'Bad Request',
-      },
-    },
-  })
   @ApiNotFoundResponse({
     description: 'Данные по Смоленской области не найдены',
-    schema: {
-      example: {
-        statusCode: 404,
-        message: 'Данные не найдены',
-        error: 'Not Found',
-      },
-    },
   })
-  async getSmolenskData(
-    @Query('period') period?: string,
-  ): Promise<SmolenskDataResponseDto> {
-    let year = new Date().getFullYear().toString();
-    if (period) {
-      const match = period.match(/\d{4}/);
-      if (match) {
-        year = match[0];
-      } else {
-        throw new BadRequestException(
-          'Неверный формат периода. Ожидается год, например, 2024 или период с годом.',
-        );
-      }
-    }
-    return this.statisticsService.getSmolenskDataForPeriod(year);
+  async getSmolenskData(): Promise<SmolenskDataResponseDto> {
+    return this.statisticsService.getAllSmolenskData();
   }
 
   @Get('periods')
